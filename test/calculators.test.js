@@ -137,3 +137,33 @@ test( 'calculate, types and register', () => {
 	assert.deepEqual( calculate( 'double', { value: 21 } ), { result: 42 } );
 	assert.throws( () => register( '', () => {} ), TypeError );
 } );
+
+test( 'startYear adds calendarYear to every series point', () => {
+	const r = sip( { monthlyAmount: 1000, annualRate: 12, years: 2.5, startYear: 2026 } );
+	assert.deepEqual( r.series.map( ( p ) => p.calendarYear ), [ 2026, 2027, 2028, 2028.5 ] );
+	for ( const [ fn, inputs ] of [
+		[ lumpsum, { amount: 1, annualRate: 1, years: 1 } ],
+		[ swp, { investment: 1, monthlyWithdrawal: 1, annualRate: 1, years: 1 } ],
+		[ emi, { principal: 1, annualRate: 1, years: 1 } ],
+	] ) {
+		assert.equal( fn( { ...inputs, startYear: '2030' } ).series[ 1 ].calendarYear, 2031 );
+	}
+} );
+
+test( 'goal: startYear gives the target year', () => {
+	const r = goal( { presentCost: 1000000, inflationRate: 6, annualRate: 9, years: 3, startYear: 2026 } );
+	assert.equal( r.targetYear, 2029 );
+	assert.equal( r.series.at( -1 ).calendarYear, 2029 );
+} );
+
+test( 'without startYear the results are unchanged', () => {
+	const r = goal( { presentCost: 1000000, inflationRate: 6, annualRate: 9, years: 3 } );
+	assert.equal( 'targetYear' in r, false );
+	assert.equal( 'calendarYear' in r.series[ 0 ], false );
+	assert.deepEqual( Object.keys( sip( { monthlyAmount: 1, annualRate: 1, years: 1 } ).series[ 0 ] ), [ 'year', 'month', 'invested', 'total' ] );
+} );
+
+test( 'startYear must be a whole year', () => {
+	assert.throws( () => sip( { monthlyAmount: 1, annualRate: 1, years: 1, startYear: 2026.5 } ), RangeError );
+	assert.throws( () => sip( { monthlyAmount: 1, annualRate: 1, years: 1, startYear: 'soon' } ), TypeError );
+} );

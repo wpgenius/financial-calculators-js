@@ -90,3 +90,46 @@ test( 'amountInWords: bad input throws', () => {
 	assert.throws( () => amountInWords( '12a' ), TypeError );
 	assert.throws( () => amountInWords( 1, { system: 'roman' } ), RangeError );
 } );
+
+test( 'formatNumber gives the same output when called repeatedly (cached formatters)', () => {
+	for ( let i = 0; i < 3; i++ ) {
+		assert.equal( formatNumber( 1234567.891, { decimals: 2 } ), '12,34,567.89' );
+		assert.equal( formatNumber( 1234567.891, { decimals: 1, system: 'international' } ), '1,234,567.9' );
+		assert.equal( formatNumber( 1234567.891 ), '12,34,568' );
+	}
+} );
+
+// Hindi words (Devanagari), as a translation example.
+const hindi = {
+	ones: [ '', 'एक', 'दो', 'तीन', 'चार', 'पाँच', 'छह', 'सात', 'आठ', 'नौ', 'दस', 'ग्यारह', 'बारह', 'तेरह', 'चौदह', 'पंद्रह', 'सोलह', 'सत्रह', 'अठारह', 'उन्नीस' ],
+	tens: [ '', '', 'बीस', 'तीस', 'चालीस', 'पचास', 'साठ', 'सत्तर', 'अस्सी', 'नब्बे' ],
+	hundred: 'सौ',
+	and: '',
+	zero: 'शून्य',
+	minus: 'ऋण',
+	indian: { thousand: 'हज़ार', lakh: 'लाख', crore: 'करोड़' },
+};
+
+test( 'amountInWords: your own words (translation)', () => {
+	assert.equal( amountInWords( 3000000, { words: hindi } ), 'तीस लाख' );
+	assert.equal( amountInWords( 150000, { words: hindi } ), 'एक लाख पचास हज़ार' );
+	assert.equal( amountInWords( 0, { words: hindi } ), 'शून्य' );
+	assert.equal( amountInWords( -205, { words: hindi } ), 'ऋण दो सौ पाँच' );
+	assert.equal( amountInWords( 1e10, { words: hindi } ), 'एक हज़ार करोड़' );
+} );
+
+test( 'amountInWords: partial words merge with English, and "and" can be dropped', () => {
+	assert.equal( amountInWords( 101, { words: { and: '' } } ), 'One Hundred One' );
+	assert.equal( amountInWords( 2500000, { words: { indian: { lakh: 'Lac' } } } ), 'Twenty Five Lac' );
+	const scales = [ '', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion', 'sextillion', 'septillion', 'octillion', 'nonillion', 'decillion' ];
+	assert.equal( amountInWords( 2e9, { system: 'international', words: { international: scales } } ), 'Two billion' );
+	assert.equal( amountInWords( 2808477 ), 'Twenty Eight Lakh Eight Thousand Four Hundred and Seventy Seven' );
+} );
+
+test( 'amountInWords: badly shaped words throw', () => {
+	assert.throws( () => amountInWords( 1, { words: { ones: [ 'a' ] } } ), /ones must be an array of 20 strings/ );
+	assert.throws( () => amountInWords( 1, { words: { tens: 'x' } } ), TypeError );
+	assert.throws( () => amountInWords( 1, { words: { hundred: 5 } } ), TypeError );
+	assert.throws( () => amountInWords( 1, { words: { indian: { lakh: 1 } } } ), TypeError );
+	assert.throws( () => amountInWords( 1, { words: 'hindi' } ), TypeError );
+} );

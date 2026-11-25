@@ -10,9 +10,16 @@ export type NumberSystem = 'indian' | 'international';
 export interface SeriesPoint {
 	year: number;
 	month: number;
+	/** startYear + year, when the calculator got a startYear. */
+	calendarYear?: number;
 }
 
-export interface SipInputs {
+/** Optional input on every calculator: the calendar year of the start (such as 2026). */
+export interface StartYearInput {
+	startYear?: NumericInput;
+}
+
+export interface SipInputs extends StartYearInput {
 	/** Amount invested at the start of every month. */
 	monthlyAmount: NumericInput;
 	/** Expected return, % a year (12 for 12%). */
@@ -34,7 +41,7 @@ export interface SipResult {
 	series: GrowthPoint[];
 }
 
-export interface LumpsumInputs {
+export interface LumpsumInputs extends StartYearInput {
 	/** Amount invested once, at the start. */
 	amount: NumericInput;
 	annualRate: NumericInput;
@@ -45,7 +52,7 @@ export interface LumpsumInputs {
 
 export type LumpsumResult = SipResult;
 
-export interface SwpInputs {
+export interface SwpInputs extends StartYearInput {
 	/** Amount invested at the start. */
 	investment: NumericInput;
 	/** Amount withdrawn at the start of every month. */
@@ -73,7 +80,7 @@ export interface SwpResult {
 	series: SwpPoint[];
 }
 
-export interface GoalInputs {
+export interface GoalInputs extends StartYearInput {
 	/** What the goal costs today. */
 	presentCost: NumericInput;
 	/** Savings already put aside for it (default 0). */
@@ -102,10 +109,12 @@ export interface GoalResult {
 	monthlyInvestment: number;
 	totalInvested: number;
 	months: number;
+	/** startYear + years, when a startYear was given. */
+	targetYear?: number;
 	series: GoalPoint[];
 }
 
-export interface EmiInputs {
+export interface EmiInputs extends StartYearInput {
 	/** Loan amount. */
 	principal: NumericInput;
 	/** Interest, % a year. */
@@ -194,8 +203,29 @@ export function formatCurrency( value: number, options?: CurrencyOptions ): stri
 export function formatCompact( value: number, options?: CompactOptions ): string;
 /** groupDigits( '1234567' ) → "12,34,567". */
 export function groupDigits( digits: string, system?: NumberSystem ): string;
+/** Your own words for amountInWords (for translations). Missing keys fall back to English. */
+export interface WordsOptions {
+	/** 20 strings for 0–19 (index 0 is unused, usually ''). */
+	ones?: string[];
+	/** 10 strings: '', '', twenty … ninety. */
+	tens?: string[];
+	hundred?: string;
+	/** Between hundreds and the rest ("and"); '' leaves it out. */
+	and?: string;
+	zero?: string;
+	minus?: string;
+	indian?: { thousand?: string; lakh?: string; crore?: string };
+	/** 12 strings: '', thousand, million … decillion. */
+	international?: string[];
+}
+
+export interface AmountInWordsOptions {
+	system?: NumberSystem;
+	words?: WordsOptions;
+}
+
 /** amountInWords( 2808477 ) → "Twenty Eight Lakh Eight Thousand Four Hundred and Seventy Seven". */
-export function amountInWords( value: number | bigint | string, options?: { system?: NumberSystem } ): string;
+export function amountInWords( value: number | bigint | string, options?: AmountInWordsOptions ): string;
 
 /** Library version, e.g. "1.0.0". */
 export const VERSION: string;

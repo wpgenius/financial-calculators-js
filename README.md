@@ -78,7 +78,7 @@ the [latest release](https://github.com/wpgenius/financial-calculators-js/releas
 | `formatNumber( value, { system, decimals } )` | `"58,08,477"` or `"5,808,477"` |
 | `formatCurrency( value, { symbol, position, system, decimals } )` | `"₹58,08,477"`, `"1,500 €"` |
 | `formatCompact( value, { system, decimals } )` | `"15L"`, `"2.5Cr"`, `"1.5M"` |
-| `amountInWords( value, { system } )` | `"Fifty Eight Lakh …"` |
+| `amountInWords( value, { system, words } )` | `"Fifty Eight Lakh …"`, or in your own words |
 | `groupDigits( digits, system )`, `VERSION` | Hand-made grouping; the library version |
 
 The details follow; the [documentation](https://wpgenius.github.io/financial-calculators-js/docs.html) has the same with more examples.
@@ -94,6 +94,10 @@ a `TypeError` or `RangeError`.
 Each result has `months` and a `series`: one point at month 0, 12, 24... and a
 last point at the final month, each with `year` and `month` plus the values
 listed below.
+
+Every calculator also takes an optional `startYear` (such as `2026`): each
+series point then gets `calendarYear` (`startYear + year`), handy for chart
+labels, and `goal()` also returns `targetYear`.
 
 #### `sip( { monthlyAmount, annualRate, years } )`
 
@@ -159,13 +163,23 @@ register( 'myCalc', ( inputs ) => ( { … } ) ); // add or replace a calculator
 | `formatNumber( value, { system, decimals = 0 } )` | `formatNumber( 5808477 )` → `"58,08,477"` |
 | `formatCurrency( value, { symbol = '₹', position = 'before', system, decimals = 0 } )` | `formatCurrency( -1500 )` → `"-₹1,500"`; `position: 'after'` → `"1,500 €"` |
 | `formatCompact( value, { system, decimals = 1 } )` | `formatCompact( 1500000 )` → `"15L"`; international → `"1.5M"` |
-| `amountInWords( value, { system } )` | `amountInWords( 1e12 )` → `"One Lakh Crore"` |
+| `amountInWords( value, { system, words } )` | `amountInWords( 1e12 )` → `"One Lakh Crore"` |
 | `groupDigits( digits, system )` | `groupDigits( '1234567' )` → `"12,34,567"` |
 
 `formatNumber` uses `Intl.NumberFormat` when the runtime has the `en-IN`
 locale, and the same grouping by hand otherwise. `amountInWords` rounds to a
 whole number and also takes a `BigInt` or a string of digits for amounts
-beyond 2^53. `VERSION` is the library version.
+beyond 2^53. Pass `words` to translate it: any of `ones` (20 strings), `tens` (10),
+`hundred`, `and` (`''` to leave it out), `zero`, `minus`, `indian`
+(`{ thousand, lakh, crore }`) and `international` (12 strings); missing keys
+stay English.
+
+```js
+amountInWords( 150000, { words: {
+  ones: [ '', 'एक', 'दो', /* … */ ], tens: [ '', '', 'बीस', /* … */ ],
+  hundred: 'सौ', and: '', indian: { thousand: 'हज़ार', lakh: 'लाख', crore: 'करोड़' },
+} } ); // "एक लाख पचास हज़ार"
+``` `VERSION` is the library version.
 
 ## Contributing
 

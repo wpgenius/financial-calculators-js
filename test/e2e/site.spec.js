@@ -27,6 +27,14 @@ test( 'every calculator tab renders results', async ( { page } ) => {
 	await expect( demo.locator( '[data-table] tbody tr' ) ).toHaveCount( 20 );
 } );
 
+test( 'the goal demo shows the target year from startYear', async ( { page } ) => {
+	const demo = page.locator( '#calc-demo' );
+	await demo.getByRole( 'tab', { name: 'Goal', exact: true } ).click();
+	const year = new Date().getFullYear() + 5;
+	await expect( demo.locator( '[data-note]' ) ).toHaveText( 'Target year: ' + year + '.' );
+	await expect( demo.locator( '[data-code]' ) ).toContainText( 'startYear: ' + ( year - 5 ) );
+} );
+
 test( 'SWP warns when the money runs out', async ( { page } ) => {
 	const demo = page.locator( '#calc-demo' );
 	await demo.getByRole( 'tab', { name: 'SWP', exact: true } ).click();

@@ -81,6 +81,7 @@
 			<li><strong><code>years</code></strong> may have fractions; it's rounded to whole months (at least one).</li>
 			<li>Inputs may be numbers or numeric strings (<code>'25000'</code>). A non-numeric input throws a <code>TypeError</code>; a negative one, or a duration under a month, throws a <code>RangeError</code>.</li>
 			<li>Every result has <code>months</code> and a <code>series</code>: one point at month 0, 12, 24… and a last point at the final month, each with <code>year</code> and <code>month</code> plus the values listed for that calculator.</li>
+			<li>Every calculator also takes an optional <code>startYear</code> (such as <code>2026</code>). Each series point then gets <code>calendarYear</code> (<code>startYear + year</code>) for chart labels, and <code>goal()</code> also returns <code>targetYear</code>.</li>
 		</ul>
 
 		<h2 id="sip">sip( inputs )</h2>
@@ -147,7 +148,7 @@
 				<tr><td><code>years</code></td><td>Years until the goal.</td></tr>
 			</tbody>
 		</table>
-		<p>Returns <code>{ presentCost, futureCost, savingsFutureValue, shortfall, monthlyInvestment, totalInvested, months, series }</code>; series points <code>{ year, month, goalCost, savings, investments, total }</code>. The calendar year of the goal is up to you: add <code>years</code> to the current year.</p>
+		<p>Returns <code>{ presentCost, futureCost, savingsFutureValue, shortfall, monthlyInvestment, totalInvested, months, series }</code>, plus <code>targetYear</code> when you pass <code>startYear</code>; series points <code>{ year, month, goalCost, savings, investments, total }</code>.</p>
 <pre><code>const g = goal( { presentCost: 1000000, currentSavings: 100000, inflationRate: 6, annualRate: 9, years: 3 } );
 g.futureCost;        // 1191016
 g.monthlyInvestment; // 25602 (rounded)</code></pre>
@@ -213,7 +214,27 @@ amountInWords( 5808477, { system: 'international' } );
 // "Five Million Eight Hundred and Eight Thousand Four Hundred and Seventy Seven"
 amountInWords( 0 );         // "Zero"
 amountInWords( -1500 );     // "Minus One Thousand Five Hundred"</code></pre>
-		<p>The words are English. Add a currency word yourself if you need one ("… rupees").</p>
+		<p>The words are English unless you pass your own with the <code>words</code> option, for a translation. Add a currency word yourself if you need one ("… rupees").</p>
+		<table>
+			<thead><tr><th><code>words</code> key</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>ones</code></td><td>20 strings for 0–19 (index 0 is usually <code>''</code>).</td></tr>
+				<tr><td><code>tens</code></td><td>10 strings: <code>''</code>, <code>''</code>, twenty … ninety.</td></tr>
+				<tr><td><code>hundred</code>, <code>and</code></td><td>"Hundred" and the word after it ("and"; <code>''</code> leaves it out).</td></tr>
+				<tr><td><code>zero</code>, <code>minus</code></td><td>For 0 and negative amounts.</td></tr>
+				<tr><td><code>indian</code></td><td><code>{ thousand, lakh, crore }</code>.</td></tr>
+				<tr><td><code>international</code></td><td>12 strings: <code>''</code>, thousand, million … decillion.</td></tr>
+			</tbody>
+		</table>
+		<p>Missing keys stay English; a list of the wrong length throws a <code>TypeError</code>.</p>
+<pre><code>const hindi = {
+  ones: [ '', 'एक', 'दो', 'तीन', 'चार', 'पाँच', 'छह', 'सात', 'आठ', 'नौ', 'दस',
+          'ग्यारह', 'बारह', 'तेरह', 'चौदह', 'पंद्रह', 'सोलह', 'सत्रह', 'अठारह', 'उन्नीस' ],
+  tens: [ '', '', 'बीस', 'तीस', 'चालीस', 'पचास', 'साठ', 'सत्तर', 'अस्सी', 'नब्बे' ],
+  hundred: 'सौ', and: '', zero: 'शून्य', minus: 'ऋण',
+  indian: { thousand: 'हज़ार', lakh: 'लाख', crore: 'करोड़' },
+};
+amountInWords( 150000, { words: hindi } ); // "एक लाख पचास हज़ार"</code></pre>
 
 		<h2 id="group-digits">groupDigits( digits, system ), VERSION</h2>
 		<p><code>groupDigits( '1234567' )</code> returns <code>"12,34,567"</code>: the hand-made grouping <code>formatNumber</code> falls back to, for a string of digits. <code>VERSION</code> is the library version, such as <code>"1.0.0"</code>.</p>
