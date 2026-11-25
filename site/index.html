@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+	<meta property="og:type" content="website">
+	<meta property="og:image" content="https://wpgenius.github.io/financial-calculators-js/assets/social-preview.png">
+	<meta property="og:image:width" content="1280">
+	<meta property="og:image:height" content="640">
+	<meta name="twitter:card" content="summary_large_image">
+	<script>try{var t=localStorage.getItem("fc-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+	<link rel="stylesheet" href="assets/site.css">
+	<title>financial-calculators – SIP, EMI, SWP, goal and lump sum calculators in plain JavaScript</title>
+	<meta name="description" content="A small, dependency-free JavaScript library for SIP, lump sum, SWP, goal and EMI calculations, Indian and international number formatting, and amounts in words.">
+	<meta property="og:title" content="financial-calculators">
+	<meta property="og:description" content="SIP, lump sum, SWP, goal and EMI calculators in plain JavaScript, with Indian and international number formatting and amounts in words. No dependencies.">
+	<meta property="og:image:alt" content="financial-calculators: financial formulas, number formatting and amounts in words in plain JavaScript.">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+	<div class="wrap">
+		<a class="brand" href="./">
+			<img src="assets/logo.svg" width="28" height="28" alt="">
+			financial-calculators <span class="version" data-version></span>
+		</a>
+		<nav class="site-nav" aria-label="Main">
+			<a href="./" aria-current="page" class="hide-sm">Home</a>
+			<a href="./#demos" class="hide-xs">Demos</a>
+			<a href="docs.html" >Docs</a>
+			<a class="gh" href="https://github.com/wpgenius/financial-calculators-js" aria-label="financial-calculators-js on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+		</nav>
+		<button type="button" class="theme-toggle" aria-label="Dark page theme" aria-pressed="false">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+		</button>
+	</div>
+</header>
+
+<main id="main">
+	<section class="hero">
+		<div class="wrap">
+			<h1>Financial calculators in <em>plain JavaScript</em></h1>
+			<p class="lead">SIP, lump sum, SWP, goal and loan EMI formulas, with yearly series ready for charts, Indian and international number formatting, and amounts in words. No dependencies, about 3&nbsp;KB gzipped.</p>
+			<div class="actions">
+				<a class="btn btn-primary" href="#demos">Try the demos</a>
+				<a class="btn" href="#get-started">Get started</a>
+				<a class="btn" href="https://github.com/wpgenius/financial-calculators-js">View on GitHub</a>
+			</div>
+			<ul class="facts">
+				<li>No dependencies</li>
+				<li>Browser and Node.js</li>
+				<li>TypeScript types</li>
+				<li>Lakh / crore and million / billion</li>
+				<li>Unit-tested formulas</li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="section" id="demos">
+		<div class="wrap">
+			<div class="section-head">
+				<span class="eyebrow">Demos</span>
+				<h2>Try it</h2>
+				<p>Every number below comes from the library itself. Move a slider or type a value; the chart is drawn with Chart.js from the series each calculator returns.</p>
+			</div>
+
+			<div class="demo" id="calc-demo">
+				<div class="toolbar">
+					<div class="chips" role="tablist" aria-label="Calculator" data-calc-tabs></div>
+					<div class="segmented" role="group" aria-label="Number format">
+						<span class="label">Format</span>
+						<button type="button" data-system="indian" data-symbol="₹" aria-pressed="true">₹ 12,34,567</button>
+						<button type="button" data-system="international" data-symbol="$" aria-pressed="false">$ 1,234,567</button>
+					</div>
+				</div>
+				<div class="calc">
+					<div>
+						<h3 data-calc-title>SIP</h3>
+						<div data-fields></div>
+					</div>
+					<div>
+						<div class="results" data-results aria-live="polite"></div>
+						<p class="words" data-words></p>
+						<p class="note" data-note hidden></p>
+						<div class="chart-box">
+							<canvas aria-label="Chart of the result" role="img"></canvas>
+							<p class="chart-fallback" hidden>The chart needs Chart.js, which couldn't load. The results above don't depend on it.</p>
+						</div>
+						<details class="code-out" data-table hidden></details>
+						<details class="code-out" open>
+							<summary>The code behind it</summary>
+							<pre data-live><code data-code></code></pre>
+						</details>
+					</div>
+				</div>
+			</div>
+
+			<div class="demo" id="format-demo">
+				<div class="demo-head">
+					<h3>Number formatting and amounts in words</h3>
+					<p>Type any amount, even beyond 999 crore: there's no size limit.</p>
+				</div>
+				<div class="format-input">
+					<label for="format-value"><strong>Amount</strong></label>
+					<input id="format-value" type="text" inputmode="decimal" value="132940859800" autocomplete="off">
+				</div>
+				<div class="format-grid" aria-live="polite">
+					<div class="result"><div class="k">Indian: formatNumber</div><div class="v" data-out="in-number"></div></div>
+					<div class="result"><div class="k">Indian: formatCompact</div><div class="v" data-out="in-compact"></div></div>
+					<div class="result"><div class="k">Indian: amountInWords</div><div class="v" data-out="in-words"></div></div>
+					<div class="result"><div class="k">International: formatNumber</div><div class="v" data-out="int-number"></div></div>
+					<div class="result"><div class="k">International: formatCompact</div><div class="v" data-out="int-compact"></div></div>
+					<div class="result"><div class="k">International: amountInWords</div><div class="v" data-out="int-words"></div></div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="how">
+		<div class="wrap">
+			<div class="section-head">
+				<span class="eyebrow">How it works</span>
+				<h2>Plain functions, plain numbers</h2>
+				<p>No classes, no state, no DOM. You pass inputs, you get numbers back, and you decide how to show them.</p>
+			</div>
+			<ol class="steps">
+				<li><h3>Call a calculator</h3><p><code>sip()</code>, <code>lumpsum()</code>, <code>swp()</code>, <code>goal()</code> or <code>emi()</code> with one object of inputs. Rates are % a year; years may have fractions.</p></li>
+				<li><h3>Get totals and a series</h3><p>Every result has its totals plus a <code>series</code> with one point per year, ready for a line or bar chart. EMI adds a yearly repayment schedule.</p></li>
+				<li><h3>Format for people</h3><p><code>formatCurrency()</code>, <code>formatCompact()</code> for chart axes, and <code>amountInWords()</code> in the Indian or international system.</p></li>
+			</ol>
+		</div>
+	</section>
+
+	<section class="section" id="features">
+		<div class="wrap">
+			<div class="section-head">
+				<span class="eyebrow">Features</span>
+				<h2>What's inside</h2>
+			</div>
+			<div class="features">
+				<div class="feature"><h3>Five calculators</h3><p>SIP, lump sum (yearly, quarterly or monthly compounding), SWP, time-based goal and loan EMI.</p></div>
+				<div class="feature"><h3>Honest edge cases</h3><p>SWP stops at zero and reports the month the money runs out; a goal already covered by savings needs nothing more each month; 0% rates work.</p></div>
+				<div class="feature"><h3>Chart-ready series</h3><p>One point per year plus the final month, with invested, total, balance or cumulative interest, depending on the calculator.</p></div>
+				<div class="feature"><h3>Indian and international</h3><p>12,34,567 or 1,234,567; 15L and 2.5Cr or 1.5M; lakh and crore or million and billion.</p></div>
+				<div class="feature"><h3>Amounts in words</h3><p>"Twenty Eight Lakh Eight Thousand Four Hundred and Seventy Seven", with no size limit (BigInt and digit strings too).</p></div>
+				<div class="feature"><h3>Small and typed</h3><p>No dependencies, about 3&nbsp;KB gzipped, TypeScript types included, and unit tests with reference values.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="get-started">
+		<div class="wrap">
+			<div class="section-head">
+				<span class="eyebrow">Get started</span>
+				<h2>Install</h2>
+				<p>Use a <code>&lt;script&gt;</code> tag (the global <code>FinancialCalculators</code>), or import it as an ES module.</p>
+			</div>
+			<div class="tabs">
+				<div role="tablist" aria-label="Install with">
+					<button type="button" role="tab" id="tab-cdn" aria-controls="panel-cdn" aria-selected="true">CDN</button>
+					<button type="button" role="tab" id="tab-npm" aria-controls="panel-npm" aria-selected="false" tabindex="-1">npm</button>
+					<button type="button" role="tab" id="tab-download" aria-controls="panel-download" aria-selected="false" tabindex="-1">Download</button>
+				</div>
+				<div role="tabpanel" id="panel-cdn" aria-labelledby="tab-cdn">
+<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/@wpgenius/financial-calculators@1/dist/financial-calculators.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const { sip, formatCurrency, amountInWords } = FinancialCalculators;
+  const result = sip( { monthlyAmount: 25000, annualRate: 12, years: 10 } );
+  formatCurrency( result.total );  // "₹58,08,477"
+  amountInWords( result.total );   // "Fifty Eight Lakh Eight Thousand Four Hundred and Seventy Seven"
+&lt;/script&gt;</code></pre>
+					<p><code>@1</code> follows the latest 1.x release; pin an exact version (such as <code>@1.0.0</code>) in production.</p>
+				</div>
+				<div role="tabpanel" id="panel-npm" aria-labelledby="tab-npm" hidden>
+<pre><code>npm install @wpgenius/financial-calculators</code></pre>
+<pre><code>import { emi, formatCurrency } from '@wpgenius/financial-calculators';
+
+const loan = emi( { principal: 3000000, annualRate: 8.5, years: 20 } );
+formatCurrency( loan.emi );  // "₹26,035"
+loan.schedule[ 0 ];          // { year: 1, principalPaid, interestPaid, balance }</code></pre>
+				</div>
+				<div role="tabpanel" id="panel-download" aria-labelledby="tab-download" hidden>
+					<p>Each <a href="https://github.com/wpgenius/financial-calculators-js/releases/latest">release</a> has three files: <code>financial-calculators.min.js</code> (for a <code>&lt;script&gt;</code> tag), the readable <code>financial-calculators.js</code>, and <code>financial-calculators.esm.js</code> for <code>import</code>.</p>
+<pre><code>&lt;script src="financial-calculators.min.js"&gt;&lt;/script&gt;</code></pre>
+				</div>
+			</div>
+			<p>Full API: <a href="docs.html">documentation</a>.</p>
+		</div>
+	</section>
+
+	<section class="section" id="contributors">
+		<div class="wrap">
+			<div class="section-head">
+				<span class="eyebrow">Community</span>
+				<h2>Contributors</h2>
+				<p>Ideas, bug reports and pull requests are welcome: see <a href="https://github.com/wpgenius/financial-calculators-js/blob/main/CONTRIBUTING.md">how to contribute</a>.</p>
+			</div>
+			<div class="people" id="contributors"><a href="https://github.com/wpgenius/financial-calculators-js/graphs/contributors">See everyone on GitHub</a></div>
+		</div>
+	</section>
+</main>
+
+<footer class="site-footer">
+	<div class="wrap">
+		<span>financial-calculators-js · GPL-3.0-or-later · by <a href="https://wpgenius.in">WPGenius</a></span>
+		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/@wpgenius/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
+	</div>
+</footer>
+
+<script src="dist/financial-calculators.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.2/dist/chart.umd.min.js" integrity="sha384-wFIO1nJgUOP2XDesMi2Xqyej8+jLnzOfBrJbdvz7Pp+UI88xOiL08fKFupi2KqR0" crossorigin="anonymous"></script>
+<script src="assets/site.js"></script>
+<script src="assets/demos.js"></script>
+</body>
+</html>

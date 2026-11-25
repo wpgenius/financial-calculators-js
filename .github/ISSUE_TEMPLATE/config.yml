@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/wpgenius/financial-calculators-js/security/advisories/new
+    about: Please report security issues privately, not as a public issue.
+  - name: Ask a question
+    url: https://github.com/wpgenius/financial-calculators-js/discussions
+    about: Questions about using the library go to Discussions.

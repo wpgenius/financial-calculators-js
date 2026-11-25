@@ -1,0 +1,21 @@
+name: Feature request
+description: A new calculator, option or formatting feature.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to calculate or show?
+      description: The calculator or feature, and who needs it.
+    validations:
+      required: true
+  - type: textarea
+    id: formula
+    attributes:
+      label: Formula or reference
+      description: The formula, or a trusted calculator or document that shows how it works, with an example input and result.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything else
+      description: Alternatives you considered, or examples from other libraries.

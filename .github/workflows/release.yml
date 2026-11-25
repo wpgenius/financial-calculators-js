@@ -115,7 +115,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           notes="${{ steps.release.outputs.notes_file }}"
-          printf '\n**Download:** `financial-calculators.min.js` for a `<script>` tag (global `FinancialCalculators`), `financial-calculators.esm.js` for `import`, or the readable `financial-calculators.js`. Also on npm: `npm install financial-calculators`.\n' >> "$notes"
+          printf '\n**Download:** `financial-calculators.min.js` for a `<script>` tag (global `FinancialCalculators`), `financial-calculators.esm.js` for `import`, or the readable `financial-calculators.js`. Also on npm: `npm install @wpgenius/financial-calculators`.\n' >> "$notes"
           gh release create "${{ steps.release.outputs.tag }}" \
             --title "${{ steps.release.outputs.tag }}" \
             --notes-file "$notes" \

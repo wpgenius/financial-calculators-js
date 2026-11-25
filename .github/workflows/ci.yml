@@ -2,8 +2,9 @@ name: CI
 
 # Checks every pull request (and pushes to main): ESLint, the unit tests on
 # each supported Node version, that the three build files are produced and
-# work, what the npm package would contain, and that PRs leave dist/ and
-# CHANGELOG.md to the release workflow.
+# work, their size budget, the TypeScript types, what the npm package would
+# contain, browser tests (Playwright) of the build files and the website
+# demos, and that PRs leave dist/ and CHANGELOG.md to the release workflow.
 #
 # The last job, "CI", passes only when every other job passed. It is the one
 # check the "Protect main" ruleset requires, so jobs can be added or renamed
@@ -66,6 +67,12 @@ jobs:
       - run: npm run build
       - name: Check the build files and the browser global
         run: npm run test:dist
+      - name: Check the size budget
+        run: npm run size
+
+      - name: Check the TypeScript types
+        run: npm run test:types
+
       - name: Check what the npm package would contain
         run: npm pack --dry-run
 
@@ -85,10 +92,33 @@ jobs:
             exit 1
           fi
 
+  browser:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Build the library and the website
+        run: |
+          npm run build
+          npm run site
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
   ci:
     name: CI
     if: always()
-    needs: [lint, test, build]
+    needs: [lint, test, build, browser]
     runs-on: ubuntu-latest
     steps:
       - name: All jobs passed
