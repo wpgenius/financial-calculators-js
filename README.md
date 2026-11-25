@@ -13,8 +13,18 @@ About 3 KB gzipped. Used by the CalcWise WordPress plugin.
 
 ## Get it
 
-Each [release](https://github.com/wpgenius/financial-calculators-js/releases)
-has three files:
+From npm:
+
+```bash
+npm install financial-calculators
+```
+
+```js
+import { sip, formatCurrency } from 'financial-calculators';
+```
+
+Or download from a [release](https://github.com/wpgenius/financial-calculators-js/releases),
+which has three files:
 
 | File | Use |
 |---|---|
@@ -142,10 +152,14 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
 
 - `main` is protected: changes go through pull requests, merged with squash.
 - Every PR closes an issue (the *Linked issue* check), and CI must pass.
-- A merge that changes `src/` publishes a GitHub release with the build
-  files; other changes make no release. The version comes from the tags
-  (first release 1.0.0): a patch bump, or minor/major with the
-  `release:minor` / `release:major` label. Release notes list the issues closed.
+- A merge that changes `src/` makes a release: the version in `package.json`
+  goes up (a patch, or minor/major with the `release:minor` / `release:major`
+  label), `dist/` is rebuilt and `CHANGELOG.md` gets a section listing the
+  issues closed. A "Release vX.Y.Z" commit and its tag are pushed to `main`,
+  the GitHub release gets the three build files, and the package is published
+  to npm as [`financial-calculators`](https://www.npmjs.com/package/financial-calculators)
+  with trusted publishing. Docs, tests, CI and config changes make no release.
+- Pull requests never edit `dist/` or `CHANGELOG.md`; the release writes them.
 
 ## License
 
