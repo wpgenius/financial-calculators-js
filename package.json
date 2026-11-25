@@ -1,7 +1,6 @@
 {
-  "name": "@wpgenius/financial-calculators",
-  "version": "0.0.0-development",
-  "private": true,
+  "name": "financial-calculators",
+  "version": "1.0.0",
   "description": "Financial calculators in plain JavaScript with no dependencies: SIP, lump sum, SWP, goal and EMI, Indian and international number formatting, and amounts in words.",
   "keywords": [
     "finance",
@@ -13,7 +12,7 @@
     "indian-number-format",
     "number-to-words"
   ],
-  "homepage": "https://github.com/wpgenius/financial-calculators-js#readme",
+  "homepage": "https://wpgenius.github.io/financial-calculators-js/",
   "bugs": "https://github.com/wpgenius/financial-calculators-js/issues",
   "repository": {
     "type": "git",
@@ -22,8 +21,19 @@
   "license": "GPL-3.0-or-later",
   "author": "Team WPGenius (https://wpgenius.in)",
   "type": "module",
+  "main": "./dist/financial-calculators.esm.js",
+  "module": "./dist/financial-calculators.esm.js",
+  "browser": "./dist/financial-calculators.min.js",
+  "unpkg": "./dist/financial-calculators.min.js",
+  "jsdelivr": "./dist/financial-calculators.min.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": {
+      "import": "./dist/financial-calculators.esm.js",
+      "default": "./dist/financial-calculators.esm.js"
+    },
+    "./src": "./src/index.js",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
   },
   "files": [
     "src",
@@ -32,6 +42,10 @@
   "sideEffects": false,
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "lint": "eslint .",

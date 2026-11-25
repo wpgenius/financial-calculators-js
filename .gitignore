@@ -1,6 +1,6 @@
-# Dependencies and build output (dist/ is attached to GitHub releases, not committed)
+# Dependencies and local output. dist/ is committed by the release workflow only.
 node_modules/
-dist/
+_site/
 coverage/
 
 # Logs and local files

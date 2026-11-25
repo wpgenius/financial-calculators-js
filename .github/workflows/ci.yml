@@ -1,7 +1,9 @@
 name: CI
 
 # Checks every pull request (and pushes to main): ESLint, the unit tests on
-# each supported Node version, and that the three build files are produced.
+# each supported Node version, that the three build files are produced and
+# work, what the npm package would contain, and that PRs leave dist/ and
+# CHANGELOG.md to the release workflow.
 #
 # The last job, "CI", passes only when every other job passed. It is the one
 # check the "Protect main" ruleset requires, so jobs can be added or renamed
@@ -54,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -62,6 +66,24 @@ jobs:
       - run: npm run build
       - name: Check the build files and the browser global
         run: npm run test:dist
+      - name: Check what the npm package would contain
+        run: npm pack --dry-run
+
+      # dist/ and CHANGELOG.md are written by the release workflow only. If a
+      # PR changes them too, every release makes the open PRs conflict.
+      - name: PR leaves dist/ and CHANGELOG.md to the release workflow
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed="$(git diff --name-only --diff-filter=MD "$BASE"...HEAD -- dist CHANGELOG.md)"
+          added_dist="$(git diff --name-only --diff-filter=A "$BASE"...HEAD -- dist)"
+          if [ -n "$changed$added_dist" ]; then
+            echo "::error::Please don't commit these files; the release workflow writes them when your PR is merged:"
+            printf '%s\n' $changed $added_dist
+            echo "Undo with: git checkout origin/main -- dist CHANGELOG.md (or git rm the new files)"
+            exit 1
+          fi
 
   ci:
     name: CI
