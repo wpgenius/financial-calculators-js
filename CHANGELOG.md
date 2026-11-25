@@ -1,5 +1,16 @@
 # Changelog
 
+All notable changes, newest first. The release workflow writes each section
+from the issues the merged pull requests closed; don't edit it by hand.
+
+## 1.1.0 – 2026-11-25
+
+### Changes
+- Release: write the new CHANGELOG section below the intro (#15)
+- Reuse Intl.NumberFormat instances in formatNumber (#17)
+- Let amountInWords take translated words (#18)
+- Add an optional startYear to the calculators (#19)
+
 ## 1.0.1 – 2026-11-25
 
 ### Changes
@@ -12,9 +23,6 @@
 - Add SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md and issue forms (#9)
 - Publish to npm as @wpgenius/financial-calculators (#12)
 - Fix the Pages deploy: deploy in its own job after the build (#13)
-
-All notable changes, newest first. The release workflow writes each section
-from the issues the merged pull requests closed; don't edit it by hand.
 
 ## 1.0.0 – 2026-11-25
 
