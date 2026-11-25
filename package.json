@@ -1,5 +1,5 @@
 {
-  "name": "financial-calculators",
+  "name": "@wpgenius/financial-calculators",
   "version": "1.0.0",
   "description": "Financial calculators in plain JavaScript with no dependencies: SIP, lump sum, SWP, goal and EMI, Indian and international number formatting, and amounts in words.",
   "keywords": [

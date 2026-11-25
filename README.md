@@ -1,12 +1,12 @@
 # financial-calculators
 
-[![npm](https://img.shields.io/npm/v/financial-calculators)](https://www.npmjs.com/package/financial-calculators)
+[![npm](https://img.shields.io/npm/v/@wpgenius/financial-calculators)](https://www.npmjs.com/package/@wpgenius/financial-calculators)
 [![Latest release](https://img.shields.io/github/v/release/wpgenius/financial-calculators-js)](https://github.com/wpgenius/financial-calculators-js/releases/latest)
 [![CI](https://github.com/wpgenius/financial-calculators-js/actions/workflows/ci.yml/badge.svg)](https://github.com/wpgenius/financial-calculators-js/actions/workflows/ci.yml)
 [![Licence: GPL-3.0-or-later](https://img.shields.io/github/license/wpgenius/financial-calculators-js)](LICENSE)
-[![npm downloads](https://img.shields.io/npm/dm/financial-calculators)](https://www.npmjs.com/package/financial-calculators)
-[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/financial-calculators)](https://www.jsdelivr.com/package/npm/financial-calculators)
-[![Bundle size](https://img.shields.io/bundlephobia/minzip/financial-calculators)](https://bundlephobia.com/package/financial-calculators)
+[![npm downloads](https://img.shields.io/npm/dm/@wpgenius/financial-calculators)](https://www.npmjs.com/package/@wpgenius/financial-calculators)
+[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@wpgenius/financial-calculators)](https://www.jsdelivr.com/package/npm/@wpgenius/financial-calculators)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/@wpgenius/financial-calculators)](https://bundlephobia.com/package/@wpgenius/financial-calculators)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 
 Financial calculators in plain JavaScript, with **no dependencies**: SIP, lump
@@ -29,17 +29,17 @@ Indian and international number formatting, and amounts in words.
 From npm:
 
 ```bash
-npm install financial-calculators
+npm install @wpgenius/financial-calculators
 ```
 
 ```js
-import { sip, formatCurrency, amountInWords } from 'financial-calculators';
+import { sip, formatCurrency, amountInWords } from '@wpgenius/financial-calculators';
 ```
 
 Or from the jsDelivr CDN, which defines the global `FinancialCalculators`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/financial-calculators@1/dist/financial-calculators.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@wpgenius/financial-calculators@1/dist/financial-calculators.min.js"></script>
 ```
 
 `@1` follows the latest 1.x release; pin an exact version (such as `@1.0.0`) in
@@ -50,7 +50,7 @@ the [latest release](https://github.com/wpgenius/financial-calculators-js/releas
 ## Quick start
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/financial-calculators@1/dist/financial-calculators.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@wpgenius/financial-calculators@1/dist/financial-calculators.min.js"></script>
 <script>
   const { sip, emi, formatCurrency, formatCompact, amountInWords } = FinancialCalculators;
 
@@ -204,7 +204,7 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
   label), `dist/` is rebuilt and `CHANGELOG.md` gets a section listing the
   issues closed. A "Release vX.Y.Z" commit and its tag are pushed to `main`,
   the GitHub release gets the three build files, and the package is published
-  to npm as [`financial-calculators`](https://www.npmjs.com/package/financial-calculators)
+  to npm as [`@wpgenius/financial-calculators`](https://www.npmjs.com/package/@wpgenius/financial-calculators)
   with trusted publishing. Docs, tests, CI and config changes make no release.
 - Pull requests never edit `dist/` or `CHANGELOG.md`; the release writes them.
 

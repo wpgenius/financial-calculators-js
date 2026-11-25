@@ -3,7 +3,7 @@ import {
 	sip, lumpsum, swp, goal, emi, calculate, types, register,
 	formatNumber, formatCurrency, formatCompact, groupDigits, amountInWords, VERSION,
 	type SipResult, type EmiResult, type CalculatorType,
-} from 'financial-calculators';
+} from '@wpgenius/financial-calculators';
 
 const s: SipResult = sip( { monthlyAmount: 25000, annualRate: '12', years: 10 } );
 const total: number = s.total + s.series[ 0 ].invested;

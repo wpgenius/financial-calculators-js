@@ -65,13 +65,13 @@
 
 		<h2 id="install">Install</h2>
 		<p>In a browser, load the minified file; it defines the global <code>FinancialCalculators</code>:</p>
-<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/financial-calculators@1/dist/financial-calculators.min.js"&gt;&lt;/script&gt;
+<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/@wpgenius/financial-calculators@1/dist/financial-calculators.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   const { sip, formatCurrency } = FinancialCalculators;
 &lt;/script&gt;</code></pre>
 		<p>With a bundler or Node.js 20+:</p>
-<pre><code>npm install financial-calculators</code></pre>
-<pre><code>import { sip, formatCurrency } from 'financial-calculators';</code></pre>
+<pre><code>npm install @wpgenius/financial-calculators</code></pre>
+<pre><code>import { sip, formatCurrency } from '@wpgenius/financial-calculators';</code></pre>
 		<p>Or download <code>financial-calculators.min.js</code>, <code>financial-calculators.js</code> (readable) or <code>financial-calculators.esm.js</code> from the <a href="https://github.com/wpgenius/financial-calculators-js/releases/latest">latest release</a>.</p>
 
 		<h2 id="conventions">Conventions</h2>
@@ -220,7 +220,7 @@ amountInWords( -1500 );     // "Minus One Thousand Five Hundred"</code></pre>
 
 		<h2 id="typescript">TypeScript</h2>
 		<p>Types ship with the package (<code>types/financial-calculators.d.ts</code>): every input and result interface, plus <code>calculate()</code> typed by calculator name, and <code>window.FinancialCalculators</code> for the browser build.</p>
-<pre><code>import { emi, type EmiResult } from 'financial-calculators';
+<pre><code>import { emi, type EmiResult } from '@wpgenius/financial-calculators';
 const loan: EmiResult = emi( { principal: 100000, annualRate: 7, years: 1 } );</code></pre>
 
 		<h2 id="formulas">Formulas</h2>
@@ -241,7 +241,7 @@ const loan: EmiResult = emi( { principal: 100000, annualRate: 7, years: 1 } );</
 <footer class="site-footer">
 	<div class="wrap">
 		<span>financial-calculators-js · GPL-3.0-or-later · by <a href="https://wpgenius.in">WPGenius</a></span>
-		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
+		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/@wpgenius/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
 	</div>
 </footer>
 

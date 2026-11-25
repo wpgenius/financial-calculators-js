@@ -164,7 +164,7 @@
 					<button type="button" role="tab" id="tab-download" aria-controls="panel-download" aria-selected="false" tabindex="-1">Download</button>
 				</div>
 				<div role="tabpanel" id="panel-cdn" aria-labelledby="tab-cdn">
-<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/financial-calculators@1/dist/financial-calculators.min.js"&gt;&lt;/script&gt;
+<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/@wpgenius/financial-calculators@1/dist/financial-calculators.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   const { sip, formatCurrency, amountInWords } = FinancialCalculators;
   const result = sip( { monthlyAmount: 25000, annualRate: 12, years: 10 } );
@@ -174,8 +174,8 @@
 					<p><code>@1</code> follows the latest 1.x release; pin an exact version (such as <code>@1.0.0</code>) in production.</p>
 				</div>
 				<div role="tabpanel" id="panel-npm" aria-labelledby="tab-npm" hidden>
-<pre><code>npm install financial-calculators</code></pre>
-<pre><code>import { emi, formatCurrency } from 'financial-calculators';
+<pre><code>npm install @wpgenius/financial-calculators</code></pre>
+<pre><code>import { emi, formatCurrency } from '@wpgenius/financial-calculators';
 
 const loan = emi( { principal: 3000000, annualRate: 8.5, years: 20 } );
 formatCurrency( loan.emi );  // "₹26,035"
@@ -205,7 +205,7 @@ loan.schedule[ 0 ];          // { year: 1, principalPaid, interestPaid, balance 
 <footer class="site-footer">
 	<div class="wrap">
 		<span>financial-calculators-js · GPL-3.0-or-later · by <a href="https://wpgenius.in">WPGenius</a></span>
-		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
+		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/@wpgenius/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
 	</div>
 </footer>
 
