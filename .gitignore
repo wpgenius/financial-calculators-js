@@ -1,0 +1,14 @@
+# Dependencies and build output (dist/ is attached to GitHub releases, not committed)
+node_modules/
+dist/
+coverage/
+
+# Logs and local files
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.tgz
