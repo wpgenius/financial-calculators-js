@@ -18,27 +18,12 @@ function toMonths(years) {
   }
   return months;
 }
-function readStartYear(startYear) {
-  if (startYear === void 0 || startYear === null || startYear === "") {
-    return void 0;
-  }
-  const year = readNumber("startYear", startYear, -1e6);
-  if (!Number.isInteger(year)) {
-    throw new RangeError(`startYear must be a whole year, got ${startYear}.`);
-  }
-  return year;
-}
-function yearlySeries(months, point, startYear) {
-  const at = (month) => {
-    const year = month / 12;
-    const base = startYear === void 0 ? { year, month } : { year, month, calendarYear: startYear + year };
-    return { ...base, ...point(month) };
-  };
+function yearlySeries(months, point) {
   const series = [];
   for (let month = 0; month < months; month += 12) {
-    series.push(at(month));
+    series.push({ year: month / 12, month, ...point(month) });
   }
-  series.push(at(months));
+  series.push({ year: months / 12, month: months, ...point(months) });
   return series;
 }
 function annuityDueValue(amount, i, n) {
@@ -49,11 +34,10 @@ function annuityDueValue(amount, i, n) {
 }
 
 // src/calculators/sip.js
-function sip({ monthlyAmount, annualRate, years, startYear }) {
+function sip({ monthlyAmount, annualRate, years }) {
   const amount = readNumber("monthlyAmount", monthlyAmount);
   const i = readNumber("annualRate", annualRate) / 100 / 12;
   const months = toMonths(years);
-  const firstYear = readStartYear(startYear);
   const total = annuityDueValue(amount, i, months);
   const invested = amount * months;
   return {
@@ -64,16 +48,15 @@ function sip({ monthlyAmount, annualRate, years, startYear }) {
     series: yearlySeries(months, (month) => ({
       invested: amount * month,
       total: annuityDueValue(amount, i, month)
-    }), firstYear)
+    }))
   };
 }
 
 // src/calculators/lumpsum.js
-function lumpsum({ amount, annualRate, years, compoundingPerYear = 1, startYear }) {
+function lumpsum({ amount, annualRate, years, compoundingPerYear = 1 }) {
   const invested = readNumber("amount", amount);
   const rate = readNumber("annualRate", annualRate) / 100;
   const months = toMonths(years);
-  const firstYear = readStartYear(startYear);
   const k = readNumber("compoundingPerYear", compoundingPerYear, 1);
   const valueAt = (month) => invested * Math.pow(1 + rate / k, k * month / 12);
   const total = valueAt(months);
@@ -85,17 +68,16 @@ function lumpsum({ amount, annualRate, years, compoundingPerYear = 1, startYear 
     series: yearlySeries(months, (month) => ({
       invested,
       total: valueAt(month)
-    }), firstYear)
+    }))
   };
 }
 
 // src/calculators/swp.js
-function swp({ investment, monthlyWithdrawal, annualRate, years, startYear }) {
+function swp({ investment, monthlyWithdrawal, annualRate, years }) {
   const start = readNumber("investment", investment);
   const withdrawal = readNumber("monthlyWithdrawal", monthlyWithdrawal);
   const i = readNumber("annualRate", annualRate) / 100 / 12;
   const months = toMonths(years);
-  const firstYear = readStartYear(startYear);
   const balances = [start];
   const withdrawnTotals = [0];
   let balance = start;
@@ -126,18 +108,17 @@ function swp({ investment, monthlyWithdrawal, annualRate, years, startYear }) {
     series: yearlySeries(months, (month) => ({
       balance: balances[month],
       withdrawn: withdrawnTotals[month]
-    }), firstYear)
+    }))
   };
 }
 
 // src/calculators/goal.js
-function goal({ presentCost, currentSavings = 0, inflationRate, annualRate, years, startYear }) {
+function goal({ presentCost, currentSavings = 0, inflationRate, annualRate, years }) {
   const cost = readNumber("presentCost", presentCost);
   const savings = readNumber("currentSavings", currentSavings);
   const inflation = readNumber("inflationRate", inflationRate) / 100;
   const rate = readNumber("annualRate", annualRate) / 100;
   const months = toMonths(years);
-  const firstYear = readStartYear(startYear);
   const i = rate / 12;
   const costAt = (month) => cost * Math.pow(1 + inflation, month / 12);
   const savingsAt = (month) => savings * Math.pow(1 + rate, month / 12);
@@ -153,7 +134,6 @@ function goal({ presentCost, currentSavings = 0, inflationRate, annualRate, year
     monthlyInvestment,
     totalInvested: monthlyInvestment * months,
     months,
-    ...firstYear === void 0 ? {} : { targetYear: firstYear + months / 12 },
     series: yearlySeries(months, (month) => {
       const investments = annuityDueValue(monthlyInvestment, i, month);
       return {
@@ -162,16 +142,15 @@ function goal({ presentCost, currentSavings = 0, inflationRate, annualRate, year
         investments,
         total: savingsAt(month) + investments
       };
-    }, firstYear)
+    })
   };
 }
 
 // src/calculators/emi.js
-function emi({ principal, annualRate, years, startYear }) {
+function emi({ principal, annualRate, years }) {
   const loan = readNumber("principal", principal);
   const i = readNumber("annualRate", annualRate) / 100 / 12;
   const months = toMonths(years);
-  const firstYear = readStartYear(startYear);
   const instalment = i === 0 ? loan / months : loan * i * Math.pow(1 + i, months) / (Math.pow(1 + i, months) - 1);
   const balances = [loan];
   const principalPaid = [0];
@@ -207,7 +186,7 @@ function emi({ principal, annualRate, years, startYear }) {
       balance: balances[month],
       principalPaid: principalPaid[month],
       interestPaid: interestPaid[month]
-    }), firstYear)
+    }))
   };
 }
 
@@ -233,20 +212,6 @@ function register(type, fn) {
 var LOCALES = { indian: "en-IN", international: "en-US" };
 var intlChecked = false;
 var intlWorks = false;
-var formatters = /* @__PURE__ */ new Map();
-function formatter(system, decimals) {
-  const key = system + ":" + decimals;
-  let cached = formatters.get(key);
-  if (!cached) {
-    cached = new Intl.NumberFormat(LOCALES[system], {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-      useGrouping: true
-    });
-    formatters.set(key, cached);
-  }
-  return cached;
-}
 function canUseIntl() {
   if (!intlChecked) {
     intlChecked = true;
@@ -295,7 +260,11 @@ function formatNumber(value, { system = "indian", decimals = 0 } = {}) {
   const rounded = Number(value.toFixed(decimals));
   const number = rounded === 0 ? 0 : value;
   if (canUseIntl()) {
-    return formatter(system, decimals).format(number);
+    return new Intl.NumberFormat(LOCALES[system], {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+      useGrouping: true
+    }).format(number);
   }
   return formatByHand(number, decimals, system);
 }
@@ -328,157 +297,103 @@ function formatCompact(value, { system = "indian", decimals = 1 } = {}) {
 }
 
 // src/format/words.js
-var ENGLISH = {
-  ones: [
-    "",
-    "One",
-    "Two",
-    "Three",
-    "Four",
-    "Five",
-    "Six",
-    "Seven",
-    "Eight",
-    "Nine",
-    "Ten",
-    "Eleven",
-    "Twelve",
-    "Thirteen",
-    "Fourteen",
-    "Fifteen",
-    "Sixteen",
-    "Seventeen",
-    "Eighteen",
-    "Nineteen"
-  ],
-  tens: ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"],
-  hundred: "Hundred",
-  and: "and",
-  zero: "Zero",
-  minus: "Minus",
-  indian: { thousand: "Thousand", lakh: "Lakh", crore: "Crore" },
-  international: [
-    "",
-    "Thousand",
-    "Million",
-    "Billion",
-    "Trillion",
-    "Quadrillion",
-    "Quintillion",
-    "Sextillion",
-    "Septillion",
-    "Octillion",
-    "Nonillion",
-    "Decillion"
-  ]
-};
-var STRING_KEYS = ["hundred", "and", "zero", "minus"];
-function readWords(custom) {
-  if (custom === void 0) {
-    return ENGLISH;
+var ONES = [
+  "",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+  "Eleven",
+  "Twelve",
+  "Thirteen",
+  "Fourteen",
+  "Fifteen",
+  "Sixteen",
+  "Seventeen",
+  "Eighteen",
+  "Nineteen"
+];
+var TENS = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+var INTERNATIONAL_SCALES = [
+  "",
+  "Thousand",
+  "Million",
+  "Billion",
+  "Trillion",
+  "Quadrillion",
+  "Quintillion",
+  "Sextillion",
+  "Septillion",
+  "Octillion",
+  "Nonillion",
+  "Decillion"
+];
+function belowHundred(n) {
+  if (n < 20) {
+    return ONES[n];
   }
-  if (!custom || typeof custom !== "object") {
-    throw new TypeError("words must be an object.");
+  return [TENS[Math.floor(n / 10)], ONES[n % 10]].filter(Boolean).join(" ");
+}
+function belowThousand(n) {
+  const hundreds = Math.floor(n / 100);
+  const rest = n % 100;
+  if (!hundreds) {
+    return belowHundred(rest);
   }
-  const list = (key, length) => {
-    if (custom[key] === void 0) {
-      return ENGLISH[key];
-    }
-    const value = custom[key];
-    if (!Array.isArray(value) || value.length !== length || !value.every((w) => typeof w === "string")) {
-      throw new TypeError(`words.${key} must be an array of ${length} strings.`);
-    }
-    return value;
-  };
-  const words = {
-    ones: list("ones", 20),
-    tens: list("tens", 10),
-    international: list("international", ENGLISH.international.length),
-    indian: { ...ENGLISH.indian }
-  };
-  for (const key of STRING_KEYS) {
-    if (custom[key] !== void 0 && typeof custom[key] !== "string") {
-      throw new TypeError(`words.${key} must be a string.`);
-    }
-    words[key] = custom[key] ?? ENGLISH[key];
-  }
-  if (custom.indian !== void 0) {
-    if (!custom.indian || typeof custom.indian !== "object") {
-      throw new TypeError("words.indian must be an object with thousand, lakh and crore.");
-    }
-    for (const key of Object.keys(ENGLISH.indian)) {
-      if (custom.indian[key] !== void 0) {
-        if (typeof custom.indian[key] !== "string") {
-          throw new TypeError(`words.indian.${key} must be a string.`);
-        }
-        words.indian[key] = custom.indian[key];
-      }
-    }
-  }
-  return words;
+  return `${ONES[hundreds]} Hundred` + (rest ? ` and ${belowHundred(rest)}` : "");
 }
 function join(parts) {
   return parts.filter(Boolean).join(" ");
 }
-function belowHundred(n, w) {
-  if (n < 20) {
-    return w.ones[n];
-  }
-  return join([w.tens[Math.floor(n / 10)], w.ones[n % 10]]);
-}
-function belowThousand(n, w) {
-  const hundreds = Math.floor(n / 100);
-  const rest = n % 100;
-  if (!hundreds) {
-    return belowHundred(rest, w);
-  }
-  return join([w.ones[hundreds], w.hundred, rest ? w.and : "", rest ? belowHundred(rest, w) : ""]);
-}
-function indian(digits, w) {
+function indian(digits) {
   digits = digits.replace(/^0+/, "");
   if (digits === "") {
     return "";
   }
   if (digits.length > 7) {
-    const crores = indian(digits.slice(0, -7), w);
-    return join([crores && `${crores} ${w.indian.crore}`, indian(digits.slice(-7), w)]);
+    const crores = indian(digits.slice(0, -7));
+    return join([crores && `${crores} Crore`, indian(digits.slice(-7))]);
   }
   const n = Number(digits);
   const lakh = Math.floor(n / 1e5);
   const thousand = Math.floor(n % 1e5 / 1e3);
   const rest = n % 1e3;
   return join([
-    lakh && `${belowHundred(lakh, w)} ${w.indian.lakh}`,
-    thousand && `${belowHundred(thousand, w)} ${w.indian.thousand}`,
-    belowThousand(rest, w)
+    lakh && `${belowHundred(lakh)} Lakh`,
+    thousand && `${belowHundred(thousand)} Thousand`,
+    belowThousand(rest)
   ]);
 }
-function international(digits, w) {
+function international(digits) {
   digits = digits.replace(/^0+/, "");
   if (digits === "") {
     return "";
   }
-  const scales = w.international;
-  const maxDigits = scales.length * 3;
+  const maxDigits = INTERNATIONAL_SCALES.length * 3;
   if (digits.length > maxDigits) {
-    const top = international(digits.slice(0, -(maxDigits - 3)), w);
-    const last = scales[scales.length - 1];
-    return join([top && `${top} ${last}`, international(digits.slice(-(maxDigits - 3)), w)]);
+    const top = international(digits.slice(0, -(maxDigits - 3)));
+    const last = INTERNATIONAL_SCALES[INTERNATIONAL_SCALES.length - 1];
+    return join([top && `${top} ${last}`, international(digits.slice(-(maxDigits - 3)))]);
   }
   const parts = [];
   for (let end = digits.length, scale = 0; end > 0; end -= 3, scale++) {
     const group = Number(digits.slice(Math.max(0, end - 3), end));
     if (group) {
-      parts.unshift(join([belowThousand(group, w), scales[scale]]));
+      parts.unshift(join([belowThousand(group), INTERNATIONAL_SCALES[scale]]));
     }
   }
   return join(parts);
 }
-function amountInWords(value, { system = "indian", words } = {}) {
+function amountInWords(value, { system = "indian" } = {}) {
   if (system !== "indian" && system !== "international") {
     throw new RangeError(`system must be "indian" or "international", got "${system}".`);
   }
-  const w = readWords(words);
   let digits;
   let negative = false;
   if (typeof value === "number") {
@@ -498,11 +413,11 @@ function amountInWords(value, { system = "indian", words } = {}) {
   } else {
     throw new TypeError(`value must be a number, a BigInt or a string of digits, got ${String(value)}.`);
   }
-  const text = system === "indian" ? indian(digits, w) : international(digits, w);
-  if (text === "") {
-    return w.zero;
+  const words = system === "indian" ? indian(digits) : international(digits);
+  if (words === "") {
+    return "Zero";
   }
-  return negative ? join([w.minus, text]) : text;
+  return negative ? `Minus ${words}` : words;
 }
 
 // src/index.js
