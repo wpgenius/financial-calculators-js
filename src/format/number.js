@@ -10,6 +10,24 @@ const LOCALES = { indian: 'en-IN', international: 'en-US' };
 let intlChecked = false;
 let intlWorks = false;
 
+// One formatter per locale and decimals: sliders format many values per frame,
+// and building an Intl.NumberFormat is far slower than using one.
+const formatters = new Map();
+
+function formatter( system, decimals ) {
+	const key = system + ':' + decimals;
+	let cached = formatters.get( key );
+	if ( ! cached ) {
+		cached = new Intl.NumberFormat( LOCALES[ system ], {
+			minimumFractionDigits: decimals,
+			maximumFractionDigits: decimals,
+			useGrouping: true,
+		} );
+		formatters.set( key, cached );
+	}
+	return cached;
+}
+
 function canUseIntl() {
 	if ( ! intlChecked ) {
 		intlChecked = true;
@@ -82,11 +100,7 @@ export function formatNumber( value, { system = 'indian', decimals = 0 } = {} ) 
 	const rounded = Number( value.toFixed( decimals ) );
 	const number = rounded === 0 ? 0 : value;
 	if ( canUseIntl() ) {
-		return new Intl.NumberFormat( LOCALES[ system ], {
-			minimumFractionDigits: decimals,
-			maximumFractionDigits: decimals,
-			useGrouping: true,
-		} ).format( number );
+		return formatter( system, decimals ).format( number );
 	}
 	return formatByHand( number, decimals, system );
 }

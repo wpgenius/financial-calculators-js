@@ -14,7 +14,7 @@
 	const money = ( v ) => FC.formatCurrency( v, { symbol: state.symbol, system: state.system } );
 	const compact = ( v ) => ( state.symbol + FC.formatCompact( v, { system: state.system } ) );
 	const words = ( v ) => FC.amountInWords( v, { system: state.system } );
-	const yearLabel = ( y ) => ( Number.isInteger( y ) ? 'Year ' + y : 'Year ' + y.toFixed( 1 ) );
+	const yearLabel = ( p ) => String( Number.isInteger( p.calendarYear ) ? p.calendarYear : p.calendarYear.toFixed( 1 ) );
 
 	/* One entry per calculator: its inputs, results, chart and the code it runs. */
 	const CALCS = {
@@ -77,7 +77,7 @@
 			],
 			results: ( r ) => [ [ 'Goal cost then', r.futureCost ], [ 'Savings will grow to', r.savingsFutureValue ], [ 'Invest each month', r.monthlyInvestment, true ] ],
 			wordsOf: ( r ) => r.monthlyInvestment,
-			note: ( r ) => ( r.monthlyInvestment === 0 ? { text: 'Your savings already cover this goal.' } : { text: 'Target year: ' + ( new Date().getFullYear() + Number( state.values.goal.years ) ) + '.' } ),
+			note: ( r ) => ( r.monthlyInvestment === 0 ? { text: 'Your savings already cover this goal.' } : { text: 'Target year: ' + r.targetYear + '.' } ),
 			chart: ( r, c ) => line( r.series, [
 				{ label: 'Goal cost', data: r.series.map( ( p ) => p.goalCost ), color: c.amber },
 				{ label: 'Savings + investments', data: r.series.map( ( p ) => p.total ), color: c.accent, fill: true },
@@ -109,7 +109,7 @@
 		return {
 			type: 'line',
 			data: {
-				labels: series.map( ( p ) => yearLabel( p.year ) ),
+				labels: series.map( yearLabel ),
 				datasets: sets.map( ( s ) => ( {
 					label: s.label,
 					data: s.data,
@@ -221,7 +221,7 @@
 
 	function update() {
 		const calc = CALCS[ state.type ];
-		const inputs = state.values[ state.type ];
+		const inputs = Object.assign( {}, state.values[ state.type ], { startYear: new Date().getFullYear() } );
 		const result = FC.calculate( state.type, inputs );
 
 		resultsBox.textContent = '';

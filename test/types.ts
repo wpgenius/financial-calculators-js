@@ -21,12 +21,17 @@ const text: string = formatNumber( 1, { system: 'international', decimals: 2 } )
 	+ formatCompact( 1 ) + groupDigits( '1000', 'indian' )
 	+ amountInWords( 10n ) + amountInWords( '123' ) + VERSION;
 const fromGlobal: string = window.FinancialCalculators.formatNumber( 1 );
+const target: number | undefined = goal( { presentCost: 1, inflationRate: 6, annualRate: 9, years: 3, startYear: 2026 } ).targetYear;
+const calendar: number | undefined = sip( { monthlyAmount: 1, annualRate: 1, years: 1, startYear: '2026' } ).series[ 0 ].calendarYear;
+const translated: string = amountInWords( 100, { words: { hundred: 'सौ', and: '', indian: { lakh: 'लाख' } } } );
 
 // @ts-expect-error: monthlyAmount is required.
 sip( { annualRate: 12, years: 10 } );
 // @ts-expect-error: unknown number system.
 formatNumber( 1, { system: 'roman' } );
+// @ts-expect-error: words.hundred is a string.
+amountInWords( 1, { words: { hundred: 100 } } );
 // @ts-expect-error: position is 'before' or 'after'.
 formatCurrency( 1, { position: 'middle' } );
 
-export { total, depleted, monthly, firstYear, viaName, kind, all, text, fromGlobal };
+export { total, depleted, monthly, firstYear, viaName, kind, all, text, fromGlobal, target, calendar, translated };

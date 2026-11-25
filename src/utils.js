@@ -38,19 +38,42 @@ export function toMonths( years ) {
 }
 
 /**
+ * Reads the optional startYear input: a whole calendar year, or undefined.
+ *
+ * @param {*} startYear
+ * @return {(number|undefined)}
+ */
+export function readStartYear( startYear ) {
+	if ( startYear === undefined || startYear === null || startYear === '' ) {
+		return undefined;
+	}
+	const year = readNumber( 'startYear', startYear, -1e6 );
+	if ( ! Number.isInteger( year ) ) {
+		throw new RangeError( `startYear must be a whole year, got ${ startYear }.` );
+	}
+	return year;
+}
+
+/**
  * Builds a chart series with one point per year (month 0, 12, 24...), plus
  * the last month when the duration is not a whole number of years.
  *
- * @param {number}                 months Duration in months.
- * @param {function(number): Object} point  Values at a given month.
- * @return {Array<Object>} Points: { year, month, ...point(month) }.
+ * @param {number}                   months      Duration in months.
+ * @param {function(number): Object} point       Values at a given month.
+ * @param {number}                   [startYear] Calendar year of month 0; adds calendarYear.
+ * @return {Array<Object>} Points: { year, month, [calendarYear], ...point(month) }.
  */
-export function yearlySeries( months, point ) {
+export function yearlySeries( months, point, startYear ) {
+	const at = ( month ) => {
+		const year = month / 12;
+		const base = startYear === undefined ? { year, month } : { year, month, calendarYear: startYear + year };
+		return { ...base, ...point( month ) };
+	};
 	const series = [];
 	for ( let month = 0; month < months; month += 12 ) {
-		series.push( { year: month / 12, month, ...point( month ) } );
+		series.push( at( month ) );
 	}
-	series.push( { year: months / 12, month: months, ...point( months ) } );
+	series.push( at( months ) );
 	return series;
 }
 

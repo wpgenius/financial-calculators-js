@@ -1,4 +1,4 @@
-import { readNumber, toMonths, yearlySeries, annuityDueValue } from '../utils.js';
+import { readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } from '../utils.js';
 
 /**
  * Time-based goal: what a goal will cost after inflation, and the monthly
@@ -12,18 +12,20 @@ import { readNumber, toMonths, yearlySeries, annuityDueValue } from '../utils.js
  * @param {number} inputs.inflationRate      Inflation, % a year.
  * @param {number} inputs.annualRate         Expected return, % a year.
  * @param {number} inputs.years              Years until the goal (fractions allowed).
+ * @param {number} [inputs.startYear]   Optional calendar year of the start; series points get calendarYear.
  * @return {{presentCost: number, futureCost: number, savingsFutureValue: number,
  *          shortfall: number, monthlyInvestment: number, totalInvested: number,
- *          months: number,
+ *          months: number, targetYear?: number (with startYear),
  *          series: Array<{year: number, month: number, goalCost: number,
  *          savings: number, investments: number, total: number}>}}
  */
-export function goal( { presentCost, currentSavings = 0, inflationRate, annualRate, years } ) {
+export function goal( { presentCost, currentSavings = 0, inflationRate, annualRate, years, startYear } ) {
 	const cost = readNumber( 'presentCost', presentCost );
 	const savings = readNumber( 'currentSavings', currentSavings );
 	const inflation = readNumber( 'inflationRate', inflationRate ) / 100;
 	const rate = readNumber( 'annualRate', annualRate ) / 100;
 	const months = toMonths( years );
+	const firstYear = readStartYear( startYear );
 	const i = rate / 12;
 
 	const costAt = ( month ) => cost * Math.pow( 1 + inflation, month / 12 );
@@ -42,6 +44,7 @@ export function goal( { presentCost, currentSavings = 0, inflationRate, annualRa
 		monthlyInvestment,
 		totalInvested: monthlyInvestment * months,
 		months,
+		...( firstYear === undefined ? {} : { targetYear: firstYear + months / 12 } ),
 		series: yearlySeries( months, ( month ) => {
 			const investments = annuityDueValue( monthlyInvestment, i, month );
 			return {
@@ -50,6 +53,6 @@ export function goal( { presentCost, currentSavings = 0, inflationRate, annualRa
 				investments,
 				total: savingsAt( month ) + investments,
 			};
-		} ),
+		}, firstYear ),
 	};
 }
