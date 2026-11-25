@@ -12,3 +12,5 @@ Thumbs.db
 .idea/
 .vscode/
 *.tgz
+test-results/
+playwright-report/

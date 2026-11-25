@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+	<meta property="og:type" content="website">
+	<meta property="og:image" content="https://wpgenius.github.io/financial-calculators-js/assets/social-preview.png">
+	<meta property="og:image:width" content="1280">
+	<meta property="og:image:height" content="640">
+	<meta name="twitter:card" content="summary_large_image">
+	<script>try{var t=localStorage.getItem("fc-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+	<link rel="stylesheet" href="assets/site.css">
+	<title>Documentation – financial-calculators</title>
+	<meta name="description" content="API documentation for financial-calculators: sip, lumpsum, swp, goal and emi calculators, number formatting, compact amounts and amounts in words.">
+	<meta property="og:title" content="financial-calculators documentation">
+	<meta property="og:description" content="Every function, input and result of the financial-calculators JavaScript library.">
+	<meta property="og:image:alt" content="financial-calculators documentation">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+	<div class="wrap">
+		<a class="brand" href="./">
+			<img src="assets/logo.svg" width="28" height="28" alt="">
+			financial-calculators <span class="version" data-version></span>
+		</a>
+		<nav class="site-nav" aria-label="Main">
+			<a href="./"  class="hide-sm">Home</a>
+			<a href="./#demos" class="hide-xs">Demos</a>
+			<a href="docs.html" aria-current="page">Docs</a>
+			<a class="gh" href="https://github.com/wpgenius/financial-calculators-js" aria-label="financial-calculators-js on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+		</nav>
+		<button type="button" class="theme-toggle" aria-label="Dark page theme" aria-pressed="false">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+		</button>
+	</div>
+</header>
+
+<div class="wrap docs">
+	<nav class="toc" aria-label="On this page">
+		<ul>
+			<li><a href="#install">Install</a></li>
+			<li><a href="#conventions">Conventions</a></li>
+			<li><a href="#sip">sip()</a></li>
+			<li><a href="#lumpsum">lumpsum()</a></li>
+			<li><a href="#swp">swp()</a></li>
+			<li><a href="#goal">goal()</a></li>
+			<li><a href="#emi">emi()</a></li>
+			<li><a href="#by-name">calculate(), types(), register()</a></li>
+			<li><a href="#format-number">formatNumber()</a></li>
+			<li><a href="#format-currency">formatCurrency()</a></li>
+			<li><a href="#format-compact">formatCompact()</a></li>
+			<li><a href="#words">amountInWords()</a></li>
+			<li><a href="#group-digits">groupDigits(), VERSION</a></li>
+			<li><a href="#typescript">TypeScript</a></li>
+			<li><a href="#formulas">Formulas</a></li>
+		</ul>
+	</nav>
+
+	<main class="doc" id="main">
+		<h1>Documentation</h1>
+		<p>financial-calculators is a set of plain functions: financial calculators that return numbers and yearly series, and formatters that turn numbers into text. It has no dependencies and never touches the page.</p>
+
+		<h2 id="install">Install</h2>
+		<p>In a browser, load the minified file; it defines the global <code>FinancialCalculators</code>:</p>
+<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/financial-calculators@1/dist/financial-calculators.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const { sip, formatCurrency } = FinancialCalculators;
+&lt;/script&gt;</code></pre>
+		<p>With a bundler or Node.js 20+:</p>
+<pre><code>npm install financial-calculators</code></pre>
+<pre><code>import { sip, formatCurrency } from 'financial-calculators';</code></pre>
+		<p>Or download <code>financial-calculators.min.js</code>, <code>financial-calculators.js</code> (readable) or <code>financial-calculators.esm.js</code> from the <a href="https://github.com/wpgenius/financial-calculators-js/releases/latest">latest release</a>.</p>
+
+		<h2 id="conventions">Conventions</h2>
+		<ul>
+			<li>Each calculator takes <strong>one object</strong> of inputs and returns an object of <strong>unrounded numbers</strong>. Round and format them when you display them.</li>
+			<li><strong>Rates</strong> are % a year: <code>12</code> means 12%.</li>
+			<li><strong><code>years</code></strong> may have fractions; it's rounded to whole months (at least one).</li>
+			<li>Inputs may be numbers or numeric strings (<code>'25000'</code>). A non-numeric input throws a <code>TypeError</code>; a negative one, or a duration under a month, throws a <code>RangeError</code>.</li>
+			<li>Every result has <code>months</code> and a <code>series</code>: one point at month 0, 12, 24… and a last point at the final month, each with <code>year</code> and <code>month</code> plus the values listed for that calculator.</li>
+		</ul>
+
+		<h2 id="sip">sip( inputs )</h2>
+		<p>Systematic investment plan: the same amount invested at the start of every month, compounded monthly.</p>
+		<table>
+			<thead><tr><th>Input</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>monthlyAmount</code></td><td>Amount invested each month.</td></tr>
+				<tr><td><code>annualRate</code></td><td>Expected return, % a year.</td></tr>
+				<tr><td><code>years</code></td><td>Duration in years.</td></tr>
+			</tbody>
+		</table>
+		<p>Returns <code>{ invested, returns, total, months, series }</code>; series points <code>{ year, month, invested, total }</code>.</p>
+<pre><code>sip( { monthlyAmount: 25000, annualRate: 12, years: 10 } );
+// { invested: 3000000, returns: 2808477.3…, total: 5808477.3…, months: 120, series: [ … 11 points ] }</code></pre>
+
+		<h2 id="lumpsum">lumpsum( inputs )</h2>
+		<p>One-time investment at the start.</p>
+		<table>
+			<thead><tr><th>Input</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>amount</code></td><td>Amount invested once.</td></tr>
+				<tr><td><code>annualRate</code></td><td>Expected return, % a year.</td></tr>
+				<tr><td><code>years</code></td><td>Duration in years.</td></tr>
+				<tr><td><code>compoundingPerYear</code></td><td>Optional: 1 yearly (default), 4 quarterly, 12 monthly.</td></tr>
+			</tbody>
+		</table>
+		<p>Returns <code>{ invested, returns, total, months, series }</code>; series points <code>{ year, month, invested, total }</code>.</p>
+<pre><code>lumpsum( { amount: 25000, annualRate: 12, years: 10 } ).total; // 77646.2…</code></pre>
+
+		<h2 id="swp">swp( inputs )</h2>
+		<p>Systematic withdrawal plan: a fixed amount is withdrawn at the start of every month and the rest earns the expected return, compounded monthly. The balance never goes below zero: when it runs out, the last withdrawal is whatever is left.</p>
+		<table>
+			<thead><tr><th>Input</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>investment</code></td><td>Amount invested at the start.</td></tr>
+				<tr><td><code>monthlyWithdrawal</code></td><td>Amount withdrawn each month.</td></tr>
+				<tr><td><code>annualRate</code></td><td>Expected return, % a year.</td></tr>
+				<tr><td><code>years</code></td><td>Duration in years.</td></tr>
+			</tbody>
+		</table>
+		<table>
+			<thead><tr><th>Result</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>investment</code></td><td>The starting amount.</td></tr>
+				<tr><td><code>totalWithdrawn</code></td><td>Everything actually withdrawn.</td></tr>
+				<tr><td><code>finalBalance</code></td><td>What's left at the end (0 or more).</td></tr>
+				<tr><td><code>returns</code></td><td><code>finalBalance + totalWithdrawn − investment</code>.</td></tr>
+				<tr><td><code>depletedMonth</code></td><td>The month (from 1) the money ran out, or <code>null</code>.</td></tr>
+				<tr><td><code>series</code></td><td>Points <code>{ year, month, balance, withdrawn }</code>; <code>withdrawn</code> is cumulative.</td></tr>
+			</tbody>
+		</table>
+<pre><code>swp( { investment: 100000, monthlyWithdrawal: 10000, annualRate: 10, years: 3 } ).depletedMonth; // 11</code></pre>
+
+		<h2 id="goal">goal( inputs )</h2>
+		<p>Time-based goal: what the goal will cost after inflation, and the monthly investment (at the start of each month) needed to reach it on top of the savings already put aside, which keep growing at the expected return. When the savings cover the goal, the monthly investment is 0.</p>
+		<table>
+			<thead><tr><th>Input</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>presentCost</code></td><td>What the goal costs today.</td></tr>
+				<tr><td><code>currentSavings</code></td><td>Optional, default 0: savings already put aside.</td></tr>
+				<tr><td><code>inflationRate</code></td><td>Inflation, % a year.</td></tr>
+				<tr><td><code>annualRate</code></td><td>Expected return, % a year.</td></tr>
+				<tr><td><code>years</code></td><td>Years until the goal.</td></tr>
+			</tbody>
+		</table>
+		<p>Returns <code>{ presentCost, futureCost, savingsFutureValue, shortfall, monthlyInvestment, totalInvested, months, series }</code>; series points <code>{ year, month, goalCost, savings, investments, total }</code>. The calendar year of the goal is up to you: add <code>years</code> to the current year.</p>
+<pre><code>const g = goal( { presentCost: 1000000, currentSavings: 100000, inflationRate: 6, annualRate: 9, years: 3 } );
+g.futureCost;        // 1191016
+g.monthlyInvestment; // 25602 (rounded)</code></pre>
+
+		<h2 id="emi">emi( inputs )</h2>
+		<p>Loan EMI (equated monthly instalment) with interest on the reducing balance.</p>
+		<table>
+			<thead><tr><th>Input</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>principal</code></td><td>Loan amount.</td></tr>
+				<tr><td><code>annualRate</code></td><td>Interest, % a year.</td></tr>
+				<tr><td><code>years</code></td><td>Tenure in years.</td></tr>
+			</tbody>
+		</table>
+		<p>Returns <code>{ emi, principal, totalInterest, totalPayment, months, schedule, series }</code>. <code>schedule</code> has one row per loan year (the last may be shorter): <code>{ year, principalPaid, interestPaid, balance }</code>. Series points <code>{ year, month, balance, principalPaid, interestPaid }</code> are cumulative.</p>
+<pre><code>const loan = emi( { principal: 100000, annualRate: 7, years: 1 } );
+loan.emi;           // 8652.67…
+loan.totalInterest; // 3832.09…</code></pre>
+
+		<h2 id="by-name">calculate(), types(), register()</h2>
+<pre><code>types();                                                  // [ 'sip', 'lumpsum', 'swp', 'goal', 'emi' ]
+calculate( 'emi', { principal: 100000, annualRate: 7, years: 1 } ); // same as emi( … )
+register( 'myCalc', ( inputs ) =&gt; ( { /* … */ } ) );       // add or replace a calculator</code></pre>
+		<p><code>calculate()</code> throws on an unknown type. Use it when the calculator comes from settings or markup, for example <code>data-calculator="sip"</code>.</p>
+
+		<h2 id="format-number">formatNumber( value, options )</h2>
+		<p>Groups the digits in the Indian or international system.</p>
+		<table>
+			<thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>system</code></td><td><code>'indian'</code></td><td><code>'indian'</code> (12,34,567) or <code>'international'</code> (1,234,567).</td></tr>
+				<tr><td><code>decimals</code></td><td><code>0</code></td><td>Digits after the decimal point, 0 to 20.</td></tr>
+			</tbody>
+		</table>
+<pre><code>formatNumber( 5808477 );                              // "58,08,477"
+formatNumber( 5808477, { system: 'international' } ); // "5,808,477"
+formatNumber( 1234567.891, { decimals: 2 } );         // "12,34,567.89"</code></pre>
+		<p>It uses <code>Intl.NumberFormat</code> when the runtime has the <code>en-IN</code> locale, and the same grouping by hand otherwise, so the output never depends on which locales are installed. It never returns <code>"-0"</code>.</p>
+
+		<h2 id="format-currency">formatCurrency( value, options )</h2>
+		<p>The currency symbol plus the grouped number. Takes the <code>formatNumber</code> options plus:</p>
+		<table>
+			<thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead>
+			<tbody>
+				<tr><td><code>symbol</code></td><td><code>'₹'</code></td><td>Any text, such as <code>'$'</code> or <code>'Rs. '</code>.</td></tr>
+				<tr><td><code>position</code></td><td><code>'before'</code></td><td><code>'before'</code> (₹100) or <code>'after'</code> (100 €).</td></tr>
+			</tbody>
+		</table>
+<pre><code>formatCurrency( -1500 );                                                     // "-₹1,500"
+formatCurrency( 1500, { symbol: '€', position: 'after', system: 'international' } ); // "1,500 €"</code></pre>
+
+		<h2 id="format-compact">formatCompact( value, options )</h2>
+		<p>Short form for chart axes and tight spaces: K, L (lakh), Cr (crore) in the Indian system; K, M, B, T internationally. Options: <code>system</code>, and <code>decimals</code> (most digits after the point, default 1).</p>
+<pre><code>formatCompact( 1500000 );                              // "15L"
+formatCompact( 25000000 );                             // "2.5Cr"
+formatCompact( 1500000, { system: 'international' } ); // "1.5M"</code></pre>
+
+		<h2 id="words">amountInWords( value, options )</h2>
+		<p>Spells out an amount, rounded to a whole number, with no size limit: above crore (or decillion) the words repeat. Takes a number, a <code>BigInt</code>, or a string of digits for amounts beyond 2<sup>53</sup>. Option: <code>system</code>.</p>
+<pre><code>amountInWords( 2808477 );   // "Twenty Eight Lakh Eight Thousand Four Hundred and Seventy Seven"
+amountInWords( 1e12 );      // "One Lakh Crore"
+amountInWords( 5808477, { system: 'international' } );
+// "Five Million Eight Hundred and Eight Thousand Four Hundred and Seventy Seven"
+amountInWords( 0 );         // "Zero"
+amountInWords( -1500 );     // "Minus One Thousand Five Hundred"</code></pre>
+		<p>The words are English. Add a currency word yourself if you need one ("… rupees").</p>
+
+		<h2 id="group-digits">groupDigits( digits, system ), VERSION</h2>
+		<p><code>groupDigits( '1234567' )</code> returns <code>"12,34,567"</code>: the hand-made grouping <code>formatNumber</code> falls back to, for a string of digits. <code>VERSION</code> is the library version, such as <code>"1.0.0"</code>.</p>
+
+		<h2 id="typescript">TypeScript</h2>
+		<p>Types ship with the package (<code>types/financial-calculators.d.ts</code>): every input and result interface, plus <code>calculate()</code> typed by calculator name, and <code>window.FinancialCalculators</code> for the browser build.</p>
+<pre><code>import { emi, type EmiResult } from 'financial-calculators';
+const loan: EmiResult = emi( { principal: 100000, annualRate: 7, years: 1 } );</code></pre>
+
+		<h2 id="formulas">Formulas</h2>
+		<table>
+			<thead><tr><th>Calculator</th><th>Formula (i = monthly rate, n = months)</th></tr></thead>
+			<tbody>
+				<tr><td>SIP</td><td><code>P × ((1 + i)^n − 1) / i × (1 + i)</code> (investment at the start of each month)</td></tr>
+				<tr><td>Lump sum</td><td><code>P × (1 + r / k)^(k × years)</code>, k = compounding per year</td></tr>
+				<tr><td>SWP</td><td>Each month: withdraw, then the rest grows by <code>i</code>; stops at zero.</td></tr>
+				<tr><td>Goal</td><td>Future cost <code>C × (1 + inflation)^years</code>; savings grow yearly; the gap is divided by the SIP factor.</td></tr>
+				<tr><td>EMI</td><td><code>P × i × (1 + i)^n / ((1 + i)^n − 1)</code>; at 0%, <code>P / n</code>.</td></tr>
+			</tbody>
+		</table>
+		<p>The unit tests check each formula against reference values. Found a result that looks wrong? <a href="https://github.com/wpgenius/financial-calculators-js/issues/new?template=bug_report.yml">Report it</a> with the inputs and the value you expected.</p>
+	</main>
+</div>
+
+<footer class="site-footer">
+	<div class="wrap">
+		<span>financial-calculators-js · GPL-3.0-or-later · by <a href="https://wpgenius.in">WPGenius</a></span>
+		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
+	</div>
+</footer>
+
+<script src="dist/financial-calculators.min.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

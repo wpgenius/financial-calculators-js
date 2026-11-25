@@ -1,0 +1,43 @@
+name: Bug report
+description: A result is wrong, or something doesn't work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Your code and inputs
+      description: The call with its inputs, for example sip( { monthlyAmount: 25000, annualRate: 12, years: 10 } ).
+      render: js
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: For a wrong number, the value you expected and where it comes from (a bank's calculator, a spreadsheet formula...).
+  - type: input
+    id: version
+    attributes:
+      label: Library version
+      description: Shown by FinancialCalculators.VERSION, or in package.json.
+      placeholder: e.g. 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser or Node.js version
+      placeholder: e.g. Chrome 140, Safari 19, Node 22
+  - type: textarea
+    id: console
+    attributes:
+      label: Errors
+      description: Errors from the console, if any.
+      render: text

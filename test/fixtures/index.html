@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>financial-calculators build test</title></head>
+<body>
+<p>Loads the build files the way a page would. Used by test/e2e/build.spec.js.</p>
+<script src="../../dist/financial-calculators.min.js"></script>
+<script type="module">
+	import * as esm from '../../dist/financial-calculators.esm.js';
+	window.esm = esm;
+	window.esmReady = true;
+</script>
+</body>
+</html>
