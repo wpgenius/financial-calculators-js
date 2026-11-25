@@ -65,8 +65,13 @@ if [ "${DRY_RUN:-}" != "1" ]; then
 		const fs = require( "fs" );
 		const notes = fs.readFileSync( process.env.NOTES, "utf8" ).trim();
 		const section = "## " + process.env.NEXT + " – " + process.env.TODAY + "\n\n" + notes + "\n\n";
-		const log = fs.readFileSync( "CHANGELOG.md", "utf8" );
-		fs.writeFileSync( "CHANGELOG.md", log.replace( /^(# Changelog\n\n)/, "$1" + section ) );
+		const head = "# Changelog\n\n";
+		const intro = "All notable changes, newest first. The release workflow writes each section\n" +
+			"from the issues the merged pull requests closed; don\x27t edit it by hand.\n\n";
+		// Keep the title and intro on top (wherever an older release left the intro),
+		// then the new section, then the earlier ones.
+		const rest = fs.readFileSync( "CHANGELOG.md", "utf8" ).replace( head, "" ).replace( intro, "" ).replace( /^\s+/, "" );
+		fs.writeFileSync( "CHANGELOG.md", head + intro + section + rest );
 	'
 fi
 
