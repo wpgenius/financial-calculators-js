@@ -167,3 +167,32 @@ test( 'startYear must be a whole year', () => {
 	assert.throws( () => sip( { monthlyAmount: 1, annualRate: 1, years: 1, startYear: 2026.5 } ), RangeError );
 	assert.throws( () => sip( { monthlyAmount: 1, annualRate: 1, years: 1, startYear: 'soon' } ), TypeError );
 } );
+
+test( 'emi: long or high-interest loans no longer give NaN (#22)', () => {
+	const steep = emi( { principal: 100000, annualRate: 100, years: 1000 } );
+	assert.ok( Number.isFinite( steep.emi ) );
+	near( steep.emi, 100000 * ( 100 / 1200 ), 1e-6 ); // tends to the interest alone
+	const long = emi( { principal: 100000, annualRate: 8, years: 1000 } );
+	near( long.emi, 100000 * 0.08 / 12, 1e-6 );
+	// Same results as before for ordinary loans.
+	assert.equal( round( emi( { principal: 3000000, annualRate: 8.5, years: 20 } ).emi ), 26035 );
+} );
+
+test( 'results that overflow throw a clear RangeError (#23)', () => {
+	assert.throws( () => sip( { monthlyAmount: 1, annualRate: 1e4, years: 40 } ), /too large to calculate/ );
+	assert.throws( () => lumpsum( { amount: 1e308, annualRate: 12, years: 10 } ), RangeError );
+} );
+
+test( 'years is capped at 1,000 (#24)', () => {
+	assert.equal( sip( { monthlyAmount: 1, annualRate: 1, years: 1000 } ).months, 12000 );
+	assert.throws( () => sip( { monthlyAmount: 1, annualRate: 1, years: 1000.5 } ), /at most 1000/ );
+	assert.throws( () => emi( { principal: 1, annualRate: 1, years: 1e9 } ), RangeError );
+} );
+
+test( 'missing or non-object inputs give a clear TypeError (#25)', () => {
+	assert.throws( () => sip(), /inputs must be an object/ );
+	assert.throws( () => sip( null ), /inputs must be an object/ );
+	assert.throws( () => calculate( 'sip' ), /inputs must be an object/ );
+	assert.throws( () => goal( {} ), /presentCost must be a finite number/ );
+	assert.throws( () => calculate( 123, {} ), /Unknown calculator/ );
+} );

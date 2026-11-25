@@ -23,18 +23,61 @@ export function readNumber( name, value, min = 0 ) {
 	return number;
 }
 
+/** Longest duration a calculator accepts: the loops run once per month. */
+export const MAX_YEARS = 1000;
+
 /**
- * Converts a duration in years (fractions allowed) to whole months, at least 1.
+ * Reads a calculator's inputs object.
+ *
+ * @param {*} inputs
+ * @return {Object} The inputs.
+ * @throws {TypeError} When inputs is not an object.
+ */
+export function readInputs( inputs ) {
+	if ( ! inputs || typeof inputs !== 'object' ) {
+		throw new TypeError( `inputs must be an object, such as { annualRate: 12, years: 10 }, got ${ String( inputs ) }.` );
+	}
+	return inputs;
+}
+
+/**
+ * Converts a duration in years (fractions allowed) to whole months: at least
+ * 1, at most MAX_YEARS × 12.
  *
  * @param {*} years Duration in years.
  * @return {number} Months.
  */
 export function toMonths( years ) {
-	const months = Math.round( readNumber( 'years', years ) * 12 );
+	const value = readNumber( 'years', years );
+	if ( value > MAX_YEARS ) {
+		throw new RangeError( `years must be at most ${ MAX_YEARS }, got ${ years }.` );
+	}
+	const months = Math.round( value * 12 );
 	if ( months < 1 ) {
 		throw new RangeError( `years must be at least one month (1/12), got ${ years }.` );
 	}
 	return months;
+}
+
+/**
+ * Checks that every number in a result is finite: huge inputs can overflow
+ * to Infinity or NaN, which would only fail later, in the formatting.
+ *
+ * @param {Object} result A calculator's result.
+ * @return {Object} The same result.
+ * @throws {RangeError} When a value is not a finite number.
+ */
+export function finiteResult( result ) {
+	const check = ( value ) => {
+		if ( typeof value === 'number' && ! Number.isFinite( value ) ) {
+			throw new RangeError( 'The result is too large to calculate; use smaller amounts, rates or durations.' );
+		}
+		if ( value && typeof value === 'object' ) {
+			Object.values( value ).forEach( check );
+		}
+	};
+	check( result );
+	return result;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
+import { finiteResult, readInputs, readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
 
 /**
  * SWP (systematic withdrawal plan): a fixed amount withdrawn at the start of
@@ -18,7 +18,8 @@ import { readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
  *          returns = finalBalance + totalWithdrawn − investment.
  *          depletedMonth is the month (1-based) the balance reached zero, or null.
  */
-export function swp( { investment, monthlyWithdrawal, annualRate, years, startYear } ) {
+export function swp( inputs ) {
+	const { investment, monthlyWithdrawal, annualRate, years, startYear } = readInputs( inputs );
 	const start = readNumber( 'investment', investment );
 	const withdrawal = readNumber( 'monthlyWithdrawal', monthlyWithdrawal );
 	const i = readNumber( 'annualRate', annualRate ) / 100 / 12;
@@ -47,7 +48,7 @@ export function swp( { investment, monthlyWithdrawal, annualRate, years, startYe
 		withdrawnTotals.push( withdrawn );
 	}
 
-	return {
+	return finiteResult( {
 		investment: start,
 		totalWithdrawn: withdrawn,
 		finalBalance: balance,
@@ -58,5 +59,5 @@ export function swp( { investment, monthlyWithdrawal, annualRate, years, startYe
 			balance: balances[ month ],
 			withdrawn: withdrawnTotals[ month ],
 		} ), firstYear ),
-	};
+	} );
 }

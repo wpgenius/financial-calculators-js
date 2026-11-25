@@ -75,7 +75,9 @@ export function groupDigits( digits, system = 'indian' ) {
 }
 
 function formatByHand( value, decimals, system ) {
-	const fixed = Math.abs( value ).toFixed( decimals );
+	const absolute = Math.abs( value );
+	// toFixed switches to exponent notation ("1e+21") at 10^21; BigInt keeps every digit.
+	const fixed = absolute >= 1e21 ? BigInt( Math.round( absolute ) ).toString() + ( decimals ? '.' + '0'.repeat( decimals ) : '' ) : absolute.toFixed( decimals );
 	const [ whole, fraction ] = fixed.split( '.' );
 	const sign = value < 0 && Number( fixed ) !== 0 ? '-' : '';
 	return sign + groupDigits( whole, system ) + ( fraction ? '.' + fraction : '' );
@@ -117,6 +119,9 @@ export function formatNumber( value, { system = 'indian', decimals = 0 } = {} ) 
  * @return {string} e.g. formatCurrency( -1500 ) → "-₹1,500".
  */
 export function formatCurrency( value, { symbol = '₹', position = 'before', system = 'indian', decimals = 0 } = {} ) {
+	if ( position !== 'before' && position !== 'after' ) {
+		throw new RangeError( `position must be "before" or "after", got "${ position }".` );
+	}
 	const formatted = formatNumber( value, { system, decimals } );
 	const negative = formatted.startsWith( '-' );
 	const digits = negative ? formatted.slice( 1 ) : formatted;
@@ -146,11 +151,20 @@ export function formatCompact( value, { system = 'indian', decimals = 1 } = {} )
 	}
 	const absolute = Math.abs( value );
 	const sign = value < 0 ? '-' : '';
-	for ( const [ size, unit ] of COMPACT_UNITS[ system ] ) {
-		if ( absolute >= size ) {
-			const short = Number( ( absolute / size ).toFixed( decimals ) );
-			return `${ sign }${ formatNumber( short, { system, decimals: short % 1 === 0 ? 0 : decimals } ) }${ unit }`;
+	const units = COMPACT_UNITS[ system ];
+	// The largest unit the value reaches; then move up a unit when rounding
+	// reaches the next one (999,999 → "1M", not "1,000K").
+	let index = units.findIndex( ( [ size ] ) => absolute >= size );
+	if ( index === -1 ) {
+		if ( Math.round( absolute ) < units[ units.length - 1 ][ 0 ] ) {
+			return formatNumber( value, { system, decimals: 0 } );
 		}
+		index = units.length - 1;
 	}
-	return formatNumber( value, { system, decimals: 0 } );
+	const rounded = ( i ) => Number( ( absolute / units[ i ][ 0 ] ).toFixed( decimals ) );
+	while ( index > 0 && rounded( index ) * units[ index ][ 0 ] >= units[ index - 1 ][ 0 ] ) {
+		index--;
+	}
+	const short = rounded( index );
+	return `${ sign }${ formatNumber( short, { system, decimals: short % 1 === 0 ? 0 : decimals } ) }${ units[ index ][ 1 ] }`;
 }

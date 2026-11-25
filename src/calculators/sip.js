@@ -1,4 +1,4 @@
-import { readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } from '../utils.js';
+import { finiteResult, readInputs, readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } from '../utils.js';
 
 /**
  * SIP (systematic investment plan): the same amount invested at the start of
@@ -12,7 +12,8 @@ import { readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } fr
  * @return {{invested: number, returns: number, total: number, months: number,
  *          series: Array<{year: number, month: number, invested: number, total: number}>}}
  */
-export function sip( { monthlyAmount, annualRate, years, startYear } ) {
+export function sip( inputs ) {
+	const { monthlyAmount, annualRate, years, startYear } = readInputs( inputs );
 	const amount = readNumber( 'monthlyAmount', monthlyAmount );
 	const i = readNumber( 'annualRate', annualRate ) / 100 / 12;
 	const months = toMonths( years );
@@ -21,7 +22,7 @@ export function sip( { monthlyAmount, annualRate, years, startYear } ) {
 	const total = annuityDueValue( amount, i, months );
 	const invested = amount * months;
 
-	return {
+	return finiteResult( {
 		invested,
 		returns: total - invested,
 		total,
@@ -30,5 +31,5 @@ export function sip( { monthlyAmount, annualRate, years, startYear } ) {
 			invested: amount * month,
 			total: annuityDueValue( amount, i, month ),
 		} ), firstYear ),
-	};
+	} );
 }

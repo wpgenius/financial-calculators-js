@@ -24,7 +24,7 @@ export interface SipInputs extends StartYearInput {
 	monthlyAmount: NumericInput;
 	/** Expected return, % a year (12 for 12%). */
 	annualRate: NumericInput;
-	/** Duration in years; fractions are rounded to whole months. */
+	/** Duration in years, one month to 1,000; fractions are rounded to whole months. */
 	years: NumericInput;
 }
 

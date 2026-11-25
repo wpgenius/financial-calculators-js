@@ -1,4 +1,4 @@
-import { readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
+import { finiteResult, readInputs, readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
 
 /**
  * Lump sum (one-time investment), compounded a given number of times a year.
@@ -12,7 +12,8 @@ import { readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
  * @return {{invested: number, returns: number, total: number, months: number,
  *          series: Array<{year: number, month: number, invested: number, total: number}>}}
  */
-export function lumpsum( { amount, annualRate, years, compoundingPerYear = 1, startYear } ) {
+export function lumpsum( inputs ) {
+	const { amount, annualRate, years, compoundingPerYear = 1, startYear } = readInputs( inputs );
 	const invested = readNumber( 'amount', amount );
 	const rate = readNumber( 'annualRate', annualRate ) / 100;
 	const months = toMonths( years );
@@ -22,7 +23,7 @@ export function lumpsum( { amount, annualRate, years, compoundingPerYear = 1, st
 	const valueAt = ( month ) => invested * Math.pow( 1 + rate / k, ( k * month ) / 12 );
 	const total = valueAt( months );
 
-	return {
+	return finiteResult( {
 		invested,
 		returns: total - invested,
 		total,
@@ -31,5 +32,5 @@ export function lumpsum( { amount, annualRate, years, compoundingPerYear = 1, st
 			invested,
 			total: valueAt( month ),
 		} ), firstYear ),
-	};
+	} );
 }

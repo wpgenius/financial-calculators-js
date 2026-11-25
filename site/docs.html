@@ -78,8 +78,8 @@
 		<ul>
 			<li>Each calculator takes <strong>one object</strong> of inputs and returns an object of <strong>unrounded numbers</strong>. Round and format them when you display them.</li>
 			<li><strong>Rates</strong> are % a year: <code>12</code> means 12%.</li>
-			<li><strong><code>years</code></strong> may have fractions; it's rounded to whole months (at least one).</li>
-			<li>Inputs may be numbers or numeric strings (<code>'25000'</code>). A non-numeric input throws a <code>TypeError</code>; a negative one, or a duration under a month, throws a <code>RangeError</code>.</li>
+			<li><strong><code>years</code></strong> may have fractions; it's rounded to whole months, from one month up to 1,000 years.</li>
+			<li>Inputs may be numbers or numeric strings (<code>'25000'</code>). A missing or non-numeric input throws a <code>TypeError</code>; a negative one, or a duration under a month or over 1,000 years, throws a <code>RangeError</code>. So does a result too large to be a finite number, instead of returning <code>Infinity</code> or <code>NaN</code>.</li>
 			<li>Every result has <code>months</code> and a <code>series</code>: one point at month 0, 12, 24… and a last point at the final month, each with <code>year</code> and <code>month</code> plus the values listed for that calculator.</li>
 			<li>Every calculator also takes an optional <code>startYear</code> (such as <code>2026</code>). Each series point then gets <code>calendarYear</code> (<code>startYear + year</code>) for chart labels, and <code>goal()</code> also returns <code>targetYear</code>.</li>
 		</ul>

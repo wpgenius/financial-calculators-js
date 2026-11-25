@@ -28,7 +28,7 @@ export function types() {
  * @throws {Error} When the type is unknown.
  */
 export function calculate( type, inputs ) {
-	if ( ! Object.prototype.hasOwnProperty.call( registry, type ) ) {
+	if ( typeof type !== 'string' || ! Object.prototype.hasOwnProperty.call( registry, type ) ) {
 		throw new Error( `Unknown calculator "${ type }". Available: ${ types().join( ', ' ) }.` );
 	}
 	return registry[ type ]( inputs );
