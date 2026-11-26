@@ -3,6 +3,17 @@
 All notable changes, newest first. The release workflow writes each section
 from the issues the merged pull requests closed; don't edit it by hand.
 
+## 1.1.1 – 2026-11-26
+
+### Changes
+- formatCompact shows 1,000K instead of 1M at unit boundaries (#21)
+- emi() returns NaN for long or high-interest loans (#22)
+- Calculators return Infinity or NaN for huge inputs, and the formatters then throw (#23)
+- No upper limit on years: huge durations freeze the page (#24)
+- Calling a calculator without inputs gives a destructuring error (#25)
+- formatCurrency accepts any position value (#26)
+- Hand-made number formatting garbles values of 10^21 and above (#27)
+
 ## 1.1.0 – 2026-11-25
 
 ### Changes

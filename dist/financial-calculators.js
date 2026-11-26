@@ -1,4 +1,4 @@
-/*! financial-calculators 1.1.0 | GPL-3.0-or-later | https://wpgenius.github.io/financial-calculators-js/ */
+/*! financial-calculators 1.1.1 | GPL-3.0-or-later | https://wpgenius.github.io/financial-calculators-js/ */
 "use strict";
 var FinancialCalculators = (() => {
   var __defProp = Object.defineProperty;
@@ -49,12 +49,35 @@ var FinancialCalculators = (() => {
     }
     return number;
   }
+  var MAX_YEARS = 1e3;
+  function readInputs(inputs) {
+    if (!inputs || typeof inputs !== "object") {
+      throw new TypeError(`inputs must be an object, such as { annualRate: 12, years: 10 }, got ${String(inputs)}.`);
+    }
+    return inputs;
+  }
   function toMonths(years) {
-    const months = Math.round(readNumber("years", years) * 12);
+    const value = readNumber("years", years);
+    if (value > MAX_YEARS) {
+      throw new RangeError(`years must be at most ${MAX_YEARS}, got ${years}.`);
+    }
+    const months = Math.round(value * 12);
     if (months < 1) {
       throw new RangeError(`years must be at least one month (1/12), got ${years}.`);
     }
     return months;
+  }
+  function finiteResult(result) {
+    const check = (value) => {
+      if (typeof value === "number" && !Number.isFinite(value)) {
+        throw new RangeError("The result is too large to calculate; use smaller amounts, rates or durations.");
+      }
+      if (value && typeof value === "object") {
+        Object.values(value).forEach(check);
+      }
+    };
+    check(result);
+    return result;
   }
   function readStartYear(startYear) {
     if (startYear === void 0 || startYear === null || startYear === "") {
@@ -87,14 +110,15 @@ var FinancialCalculators = (() => {
   }
 
   // src/calculators/sip.js
-  function sip({ monthlyAmount, annualRate, years, startYear }) {
+  function sip(inputs) {
+    const { monthlyAmount, annualRate, years, startYear } = readInputs(inputs);
     const amount = readNumber("monthlyAmount", monthlyAmount);
     const i = readNumber("annualRate", annualRate) / 100 / 12;
     const months = toMonths(years);
     const firstYear = readStartYear(startYear);
     const total = annuityDueValue(amount, i, months);
     const invested = amount * months;
-    return {
+    return finiteResult({
       invested,
       returns: total - invested,
       total,
@@ -103,11 +127,12 @@ var FinancialCalculators = (() => {
         invested: amount * month,
         total: annuityDueValue(amount, i, month)
       }), firstYear)
-    };
+    });
   }
 
   // src/calculators/lumpsum.js
-  function lumpsum({ amount, annualRate, years, compoundingPerYear = 1, startYear }) {
+  function lumpsum(inputs) {
+    const { amount, annualRate, years, compoundingPerYear = 1, startYear } = readInputs(inputs);
     const invested = readNumber("amount", amount);
     const rate = readNumber("annualRate", annualRate) / 100;
     const months = toMonths(years);
@@ -115,7 +140,7 @@ var FinancialCalculators = (() => {
     const k = readNumber("compoundingPerYear", compoundingPerYear, 1);
     const valueAt = (month) => invested * Math.pow(1 + rate / k, k * month / 12);
     const total = valueAt(months);
-    return {
+    return finiteResult({
       invested,
       returns: total - invested,
       total,
@@ -124,11 +149,12 @@ var FinancialCalculators = (() => {
         invested,
         total: valueAt(month)
       }), firstYear)
-    };
+    });
   }
 
   // src/calculators/swp.js
-  function swp({ investment, monthlyWithdrawal, annualRate, years, startYear }) {
+  function swp(inputs) {
+    const { investment, monthlyWithdrawal, annualRate, years, startYear } = readInputs(inputs);
     const start = readNumber("investment", investment);
     const withdrawal = readNumber("monthlyWithdrawal", monthlyWithdrawal);
     const i = readNumber("annualRate", annualRate) / 100 / 12;
@@ -154,7 +180,7 @@ var FinancialCalculators = (() => {
       balances.push(balance);
       withdrawnTotals.push(withdrawn);
     }
-    return {
+    return finiteResult({
       investment: start,
       totalWithdrawn: withdrawn,
       finalBalance: balance,
@@ -165,11 +191,12 @@ var FinancialCalculators = (() => {
         balance: balances[month],
         withdrawn: withdrawnTotals[month]
       }), firstYear)
-    };
+    });
   }
 
   // src/calculators/goal.js
-  function goal({ presentCost, currentSavings = 0, inflationRate, annualRate, years, startYear }) {
+  function goal(inputs) {
+    const { presentCost, currentSavings = 0, inflationRate, annualRate, years, startYear } = readInputs(inputs);
     const cost = readNumber("presentCost", presentCost);
     const savings = readNumber("currentSavings", currentSavings);
     const inflation = readNumber("inflationRate", inflationRate) / 100;
@@ -183,7 +210,7 @@ var FinancialCalculators = (() => {
     const savingsFutureValue = savingsAt(months);
     const shortfall = Math.max(0, futureCost - savingsFutureValue);
     const monthlyInvestment = shortfall / annuityDueValue(1, i, months);
-    return {
+    return finiteResult({
       presentCost: cost,
       futureCost,
       savingsFutureValue,
@@ -201,16 +228,17 @@ var FinancialCalculators = (() => {
           total: savingsAt(month) + investments
         };
       }, firstYear)
-    };
+    });
   }
 
   // src/calculators/emi.js
-  function emi({ principal, annualRate, years, startYear }) {
+  function emi(inputs) {
+    const { principal, annualRate, years, startYear } = readInputs(inputs);
     const loan = readNumber("principal", principal);
     const i = readNumber("annualRate", annualRate) / 100 / 12;
     const months = toMonths(years);
     const firstYear = readStartYear(startYear);
-    const instalment = i === 0 ? loan / months : loan * i * Math.pow(1 + i, months) / (Math.pow(1 + i, months) - 1);
+    const instalment = i === 0 ? loan / months : loan * i / (1 - Math.pow(1 + i, -months));
     const balances = [loan];
     const principalPaid = [0];
     const interestPaid = [0];
@@ -234,7 +262,7 @@ var FinancialCalculators = (() => {
       });
     }
     const totalPayment = instalment * months;
-    return {
+    return finiteResult({
       emi: instalment,
       principal: loan,
       totalInterest: totalPayment - loan,
@@ -246,7 +274,7 @@ var FinancialCalculators = (() => {
         principalPaid: principalPaid[month],
         interestPaid: interestPaid[month]
       }), firstYear)
-    };
+    });
   }
 
   // src/calculators/index.js
@@ -255,7 +283,7 @@ var FinancialCalculators = (() => {
     return Object.keys(registry);
   }
   function calculate(type, inputs) {
-    if (!Object.prototype.hasOwnProperty.call(registry, type)) {
+    if (typeof type !== "string" || !Object.prototype.hasOwnProperty.call(registry, type)) {
       throw new Error(`Unknown calculator "${type}". Available: ${types().join(", ")}.`);
     }
     return registry[type](inputs);
@@ -319,7 +347,8 @@ var FinancialCalculators = (() => {
     return rest.replace(pattern, ",") + "," + last3;
   }
   function formatByHand(value, decimals, system) {
-    const fixed = Math.abs(value).toFixed(decimals);
+    const absolute = Math.abs(value);
+    const fixed = absolute >= 1e21 ? BigInt(Math.round(absolute)).toString() + (decimals ? "." + "0".repeat(decimals) : "") : absolute.toFixed(decimals);
     const [whole, fraction] = fixed.split(".");
     const sign = value < 0 && Number(fixed) !== 0 ? "-" : "";
     return sign + groupDigits(whole, system) + (fraction ? "." + fraction : "");
@@ -338,6 +367,9 @@ var FinancialCalculators = (() => {
     return formatByHand(number, decimals, system);
   }
   function formatCurrency(value, { symbol = "\u20B9", position = "before", system = "indian", decimals = 0 } = {}) {
+    if (position !== "before" && position !== "after") {
+      throw new RangeError(`position must be "before" or "after", got "${position}".`);
+    }
     const formatted = formatNumber(value, { system, decimals });
     const negative = formatted.startsWith("-");
     const digits = negative ? formatted.slice(1) : formatted;
@@ -356,13 +388,20 @@ var FinancialCalculators = (() => {
     }
     const absolute = Math.abs(value);
     const sign = value < 0 ? "-" : "";
-    for (const [size, unit] of COMPACT_UNITS[system]) {
-      if (absolute >= size) {
-        const short = Number((absolute / size).toFixed(decimals));
-        return `${sign}${formatNumber(short, { system, decimals: short % 1 === 0 ? 0 : decimals })}${unit}`;
+    const units = COMPACT_UNITS[system];
+    let index = units.findIndex(([size]) => absolute >= size);
+    if (index === -1) {
+      if (Math.round(absolute) < units[units.length - 1][0]) {
+        return formatNumber(value, { system, decimals: 0 });
       }
+      index = units.length - 1;
     }
-    return formatNumber(value, { system, decimals: 0 });
+    const rounded = (i) => Number((absolute / units[i][0]).toFixed(decimals));
+    while (index > 0 && rounded(index) * units[index][0] >= units[index - 1][0]) {
+      index--;
+    }
+    const short = rounded(index);
+    return `${sign}${formatNumber(short, { system, decimals: short % 1 === 0 ? 0 : decimals })}${units[index][1]}`;
   }
 
   // src/format/words.js
@@ -544,6 +583,6 @@ var FinancialCalculators = (() => {
   }
 
   // src/index.js
-  var VERSION = true ? "1.1.0" : "development";
+  var VERSION = true ? "1.1.1" : "development";
   return __toCommonJS(index_exports);
 })();
