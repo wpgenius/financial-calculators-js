@@ -1,4 +1,4 @@
-import { finiteResult, readInputs, readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
+import { finiteResult, readInputs, readInteger, readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
 
 /**
  * Lump sum (one-time investment), compounded a given number of times a year.
@@ -18,7 +18,7 @@ export function lumpsum( inputs ) {
 	const rate = readNumber( 'annualRate', annualRate ) / 100;
 	const months = toMonths( years );
 	const firstYear = readStartYear( startYear );
-	const k = readNumber( 'compoundingPerYear', compoundingPerYear, 1 );
+	const k = readInteger( 'compoundingPerYear', compoundingPerYear, 1 );
 
 	const valueAt = ( month ) => invested * Math.pow( 1 + rate / k, ( k * month ) / 12 );
 	const total = valueAt( months );

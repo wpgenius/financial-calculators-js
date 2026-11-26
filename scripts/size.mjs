@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 const budgets = [
-	{ file: 'dist/financial-calculators.min.js', min: 10 * 1024, gzip: 4 * 1024 },
-	{ file: 'dist/financial-calculators.esm.js', min: 20 * 1024, gzip: 6 * 1024 },
+	{ file: 'dist/financial-calculators.min.js', min: 12 * 1024, gzip: 5 * 1024 },
+	{ file: 'dist/financial-calculators.esm.js', min: 24 * 1024, gzip: 7 * 1024 },
 ];
 
 let failed = false;

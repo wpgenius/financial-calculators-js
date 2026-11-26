@@ -68,6 +68,6 @@ test( 'the theme toggle switches and remembers dark mode', async ( { page } ) =>
 test( 'the docs page loads with its table of contents', async ( { page } ) => {
 	await page.goto( '/_site/docs.html' );
 	await expect( page.getByRole( 'heading', { name: 'Documentation' } ) ).toBeVisible();
-	await expect( page.locator( '.toc a' ) ).toHaveCount( 15 );
+	await expect( page.locator( '.toc a' ) ).toHaveCount( 16 );
 	await expect( page.locator( '[data-version]' ) ).toHaveText( /^v\d/ );
 } );

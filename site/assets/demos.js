@@ -14,7 +14,8 @@
 	const money = ( v ) => FC.formatCurrency( v, { symbol: state.symbol, system: state.system } );
 	const compact = ( v ) => ( state.symbol + FC.formatCompact( v, { system: state.system } ) );
 	const words = ( v ) => FC.amountInWords( v, { system: state.system } );
-	const yearLabel = ( p ) => String( Number.isInteger( p.calendarYear ) ? p.calendarYear : p.calendarYear.toFixed( 1 ) );
+	// A last partial year shares its calendar year, so add the extra months.
+	const yearLabel = ( p ) => ( Number.isInteger( p.year ) ? String( p.calendarYear ) : `${ p.calendarYear } +${ p.month % 12 }m` );
 
 	/* One entry per calculator: its inputs, results, chart and the code it runs. */
 	const CALCS = {

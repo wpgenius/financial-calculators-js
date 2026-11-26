@@ -1,4 +1,4 @@
-import { finiteResult, readInputs, readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
+import { finiteResult, growth, readInputs, readNumber, readStartYear, toMonths, yearlySeries } from '../utils.js';
 
 /**
  * Loan EMI (equated monthly instalment), interest reducing monthly, with a
@@ -24,10 +24,11 @@ export function emi( inputs ) {
 	const firstYear = readStartYear( startYear );
 
 	// P × i / (1 − (1 + i)^−n): the same as P × i × (1 + i)^n / ((1 + i)^n − 1),
-	// but (1 + i)^−n shrinks towards 0 instead of overflowing to Infinity.
+	// but (1 + i)^−n shrinks towards 0 instead of overflowing to Infinity, and
+	// growth() keeps its precision for tiny rates.
 	const instalment = i === 0
 		? loan / months
-		: ( loan * i ) / ( 1 - Math.pow( 1 + i, -months ) );
+		: ( loan * i ) / -growth( i, -months );
 
 	const balances = [ loan ];
 	const principalPaid = [ 0 ];
@@ -53,12 +54,13 @@ export function emi( inputs ) {
 		} );
 	}
 
-	const totalPayment = instalment * months;
+	// From the schedule, so the totals match it exactly (0 interest at 0%).
+	const totalInterest = interestPaid[ months ];
 	return finiteResult( {
 		emi: instalment,
 		principal: loan,
-		totalInterest: totalPayment - loan,
-		totalPayment,
+		totalInterest,
+		totalPayment: loan + totalInterest,
 		months,
 		schedule,
 		series: yearlySeries( months, ( month ) => ( {

@@ -50,6 +50,9 @@ function readWords( custom ) {
 	const words = {
 		ones: list( 'ones', 20 ),
 		tens: list( 'tens', 10 ),
+		// Languages whose numbers up to 99 don't follow "tens + ones" (Hindi:
+		// 21 is "इक्कीस", not "बीस एक") give all 100 words instead.
+		belowHundred: custom.belowHundred === undefined ? null : list( 'belowHundred', 100 ),
 		international: list( 'international', ENGLISH.international.length ),
 		indian: { ...ENGLISH.indian },
 	};
@@ -81,6 +84,9 @@ function join( parts ) {
 
 // 0–99.
 function belowHundred( n, w ) {
+	if ( w.belowHundred ) {
+		return n === 0 ? '' : w.belowHundred[ n ];
+	}
 	if ( n < 20 ) {
 		return w.ones[ n ];
 	}
@@ -94,7 +100,7 @@ function belowThousand( n, w ) {
 	if ( ! hundreds ) {
 		return belowHundred( rest, w );
 	}
-	return join( [ w.ones[ hundreds ], w.hundred, rest ? w.and : '', rest ? belowHundred( rest, w ) : '' ] );
+	return join( [ belowHundred( hundreds, w ), w.hundred, rest ? w.and : '', rest ? belowHundred( rest, w ) : '' ] );
 }
 
 // Digits → words, Indian system: ...crore, lakh, thousand, hundreds.
@@ -149,7 +155,8 @@ function international( digits, w ) {
  * @param {Object} [options]
  * @param {string} [options.system='indian'] "indian" or "international".
  * @param {Object} [options.words]           Your own words, merged with the English ones:
- *        ones (20 strings, 0–19), tens (10 strings), hundred, and ('' to leave it out),
+ *        ones (20 strings, 0–19), tens (10 strings), belowHundred (100 strings, 0–99,
+ *        used instead of ones and tens when given; index 0 is not used), hundred, and ('' to leave it out),
  *        zero, minus, indian { thousand, lakh, crore }, international (12 strings:
  *        '', thousand, million … decillion).
  * @return {string} e.g. 2808477 → "Twenty Eight Lakh Eight Thousand Four Hundred and Seventy Seven".

@@ -18,18 +18,23 @@
     "type": "git",
     "url": "git+https://github.com/wpgenius/financial-calculators-js.git"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "author": "Team WPGenius (https://wpgenius.in)",
   "type": "module",
-  "main": "./dist/financial-calculators.esm.js",
+  "main": "./dist/financial-calculators.cjs",
   "module": "./dist/financial-calculators.esm.js",
-  "browser": "./dist/financial-calculators.min.js",
   "unpkg": "./dist/financial-calculators.min.js",
   "jsdelivr": "./dist/financial-calculators.min.js",
   "exports": {
     ".": {
-      "types": "./types/financial-calculators.d.ts",
-      "import": "./dist/financial-calculators.esm.js",
+      "import": {
+        "types": "./types/financial-calculators.d.ts",
+        "default": "./dist/financial-calculators.esm.js"
+      },
+      "require": {
+        "types": "./dist/financial-calculators.d.cts",
+        "default": "./dist/financial-calculators.cjs"
+      },
       "default": "./dist/financial-calculators.esm.js"
     },
     "./src": "./src/index.js",

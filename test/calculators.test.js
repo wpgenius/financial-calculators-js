@@ -140,7 +140,8 @@ test( 'calculate, types and register', () => {
 
 test( 'startYear adds calendarYear to every series point', () => {
 	const r = sip( { monthlyAmount: 1000, annualRate: 12, years: 2.5, startYear: 2026 } );
-	assert.deepEqual( r.series.map( ( p ) => p.calendarYear ), [ 2026, 2027, 2028, 2028.5 ] );
+	assert.deepEqual( r.series.map( ( p ) => p.calendarYear ), [ 2026, 2027, 2028, 2028 ] );
+	assert.equal( goal( { presentCost: 1, inflationRate: 1, annualRate: 1, years: 2.5, startYear: 2026 } ).targetYear, 2028 );
 	for ( const [ fn, inputs ] of [
 		[ lumpsum, { amount: 1, annualRate: 1, years: 1 } ],
 		[ swp, { investment: 1, monthlyWithdrawal: 1, annualRate: 1, years: 1 } ],
@@ -195,4 +196,20 @@ test( 'missing or non-object inputs give a clear TypeError (#25)', () => {
 	assert.throws( () => calculate( 'sip' ), /inputs must be an object/ );
 	assert.throws( () => goal( {} ), /presentCost must be a finite number/ );
 	assert.throws( () => calculate( 123, {} ), /Unknown calculator/ );
+} );
+
+test( 'inputs: only decimal strings, no arrays, whole compounding periods (#34, #35, #36)', () => {
+	assert.throws( () => sip( { monthlyAmount: '0x10', annualRate: 12, years: 1 } ), /got "0x10"/ );
+	assert.throws( () => sip( { monthlyAmount: '0b11', annualRate: 12, years: 1 } ), TypeError );
+	assert.equal( sip( { monthlyAmount: ' 1e3 ', annualRate: '12.5', years: '.5' } ).invested, 6000 );
+	assert.throws( () => sip( [] ), /got an array/ );
+	assert.throws( () => lumpsum( { amount: 1, annualRate: 1, years: 1, compoundingPerYear: 2.7 } ), /whole number/ );
+	assert.equal( lumpsum( { amount: 1, annualRate: 1, years: 1, compoundingPerYear: '4' } ).months, 12 );
+} );
+
+test( 'register keeps any name, even "__proto__" (#37)', () => {
+	register( '__proto__', () => ( { ok: true } ) );
+	assert.ok( types().includes( '__proto__' ) );
+	assert.deepEqual( calculate( '__proto__', {} ), { ok: true } );
+	assert.throws( () => calculate( 'toString', {} ), /Unknown calculator/ );
 } );

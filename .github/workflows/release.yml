@@ -3,7 +3,7 @@ name: Release
 # A change to the library code (src/) on main makes a release: the version in
 # package.json is bumped, dist/ rebuilt and tested, CHANGELOG.md updated, and a
 # "Release vX.Y.Z" commit and its tag are pushed to main. Then a GitHub release
-# is published with the three build files, and the package is published to npm
+# is published with the build files, and the package is published to npm
 # through npm trusted publishing (no token).
 #
 # Patch by default; label the merged PR release:minor or release:major for a
@@ -115,13 +115,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           notes="${{ steps.release.outputs.notes_file }}"
-          printf '\n**Download:** `financial-calculators.min.js` for a `<script>` tag (global `FinancialCalculators`), `financial-calculators.esm.js` for `import`, or the readable `financial-calculators.js`. Also on npm: `npm install @wpgenius/financial-calculators`.\n' >> "$notes"
+          printf '\n**Download:** `financial-calculators.min.js` for a `<script>` tag (global `FinancialCalculators`), `financial-calculators.esm.js` for `import`, `financial-calculators.cjs` for `require`, or the readable `financial-calculators.js`. Also on npm: `npm install @wpgenius/financial-calculators`.\n' >> "$notes"
           gh release create "${{ steps.release.outputs.tag }}" \
             --title "${{ steps.release.outputs.tag }}" \
             --notes-file "$notes" \
             dist/financial-calculators.js \
             dist/financial-calculators.min.js \
-            dist/financial-calculators.esm.js
+            dist/financial-calculators.esm.js \
+            dist/financial-calculators.cjs
 
       # Last, so a failing npm publish never blocks the GitHub release (retry
       # with the "Publish to npm" workflow). Trusted publishing needs npm
