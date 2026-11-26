@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { formatNumber, formatCurrency, formatCompact, groupDigits, amountInWords } from '../src/index.js';
 
@@ -132,4 +133,30 @@ test( 'amountInWords: badly shaped words throw', () => {
 	assert.throws( () => amountInWords( 1, { words: { hundred: 5 } } ), TypeError );
 	assert.throws( () => amountInWords( 1, { words: { indian: { lakh: 1 } } } ), TypeError );
 	assert.throws( () => amountInWords( 1, { words: 'hindi' } ), TypeError );
+} );
+
+test( 'formatCompact moves up a unit when rounding reaches it (#21)', () => {
+	assert.equal( formatCompact( 999999, { system: 'international' } ), '1M' );
+	assert.equal( formatCompact( 99999 ), '1L' );
+	assert.equal( formatCompact( 9999999 ), '1Cr' );
+	assert.equal( formatCompact( 999950000, { system: 'international' } ), '1B' );
+	assert.equal( formatCompact( 999.6 ), '1K' );
+	assert.equal( formatCompact( 999.4 ), '999' );
+	assert.equal( formatCompact( -999999, { system: 'international' } ), '-1M' );
+	assert.equal( formatCompact( 500000, { system: 'international', decimals: 0 } ), '500K' );
+	assert.equal( formatCompact( 1e15, { system: 'international' } ), '1,000T' );
+} );
+
+test( 'formatCurrency rejects an unknown position (#26)', () => {
+	assert.throws( () => formatCurrency( 5, { position: 'middle' } ), /position must be "before" or "after"/ );
+} );
+
+test( 'the hand-made fallback (no en-IN in Intl) keeps every digit of huge numbers (#27)', () => {
+	const script = `
+		Intl.NumberFormat = function () { throw new Error( 'no locales' ); };
+		const { formatNumber } = await import( ${ JSON.stringify( new URL( '../src/index.js', import.meta.url ).href ) } );
+		console.log( JSON.stringify( [ formatNumber( 1e21 ), formatNumber( 1e21, { system: 'international', decimals: 2 } ), formatNumber( 1234567.891, { decimals: 2 } ), formatNumber( -1500 ) ] ) );
+	`;
+	const out = JSON.parse( execFileSync( process.execPath, [ '--input-type=module', '-e', script ], { encoding: 'utf8' } ) );
+	assert.deepEqual( out, [ '1,00,00,00,00,00,00,00,00,00,000', '1,000,000,000,000,000,000,000.00', '12,34,567.89', '-1,500' ] );
 } );

@@ -87,9 +87,11 @@ The details follow; the [documentation](https://wpgenius.github.io/financial-cal
 
 Every calculator takes one object of inputs and returns plain numbers
 (unrounded: round when you display them). Rates are % a year (`12` for 12%).
-`years` may have fractions; it is rounded to whole months. Inputs may be
-numbers or numeric strings; a missing, non-numeric or negative input throws
-a `TypeError` or `RangeError`.
+`years` may have fractions; it is rounded to whole months, from one month up
+to 1,000 years. Inputs may be numbers or numeric strings; a missing,
+non-numeric or negative input throws a `TypeError` or `RangeError`, and so
+does a result too large to be a finite number (instead of returning
+`Infinity` or `NaN`).
 
 Each result has `months` and a `series`: one point at month 0, 12, 24... and a
 last point at the final month, each with `year` and `month` plus the values

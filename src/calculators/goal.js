@@ -1,4 +1,4 @@
-import { readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } from '../utils.js';
+import { finiteResult, readInputs, readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } from '../utils.js';
 
 /**
  * Time-based goal: what a goal will cost after inflation, and the monthly
@@ -19,7 +19,8 @@ import { readNumber, readStartYear, toMonths, yearlySeries, annuityDueValue } fr
  *          series: Array<{year: number, month: number, goalCost: number,
  *          savings: number, investments: number, total: number}>}}
  */
-export function goal( { presentCost, currentSavings = 0, inflationRate, annualRate, years, startYear } ) {
+export function goal( inputs ) {
+	const { presentCost, currentSavings = 0, inflationRate, annualRate, years, startYear } = readInputs( inputs );
 	const cost = readNumber( 'presentCost', presentCost );
 	const savings = readNumber( 'currentSavings', currentSavings );
 	const inflation = readNumber( 'inflationRate', inflationRate ) / 100;
@@ -36,7 +37,7 @@ export function goal( { presentCost, currentSavings = 0, inflationRate, annualRa
 	const shortfall = Math.max( 0, futureCost - savingsFutureValue );
 	const monthlyInvestment = shortfall / annuityDueValue( 1, i, months );
 
-	return {
+	return finiteResult( {
 		presentCost: cost,
 		futureCost,
 		savingsFutureValue,
@@ -54,5 +55,5 @@ export function goal( { presentCost, currentSavings = 0, inflationRate, annualRa
 				total: savingsAt( month ) + investments,
 			};
 		}, firstYear ),
-	};
+	} );
 }
