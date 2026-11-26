@@ -3,6 +3,23 @@
 All notable changes, newest first. The release workflow writes each section
 from the issues the merged pull requests closed; don't edit it by hand.
 
+## 1.2.0 – 2026-11-26
+
+### Changes
+- Tiny rates lose precision (#29)
+- Let amountInWords take all 100 words below a hundred (#30)
+- Add a CommonJS build and fix the package entry points (#31)
+- calendarYear and targetYear can be fractional (#32)
+- formatCompact keeps trailing zeros (#33)
+- compoundingPerYear accepts fractions (#34)
+- Numeric strings in hex, binary or octal are accepted (#35)
+- Public helpers validate inputs inconsistently (#36)
+- register() silently drops reserved names (#37)
+- Fallback formatter rounds half values differently from Intl (#38)
+- Switch the licence to MIT (#39)
+- Test against Excel reference values and with property-based tests (#40)
+- Document supported environments (#41)
+
 ## 1.1.1 – 2026-11-26
 
 ### Changes

@@ -1,4 +1,4 @@
-/*! financial-calculators 1.1.1 | GPL-3.0-or-later | https://wpgenius.github.io/financial-calculators-js/ */
+/*! financial-calculators 1.2.0 | MIT | https://wpgenius.github.io/financial-calculators-js/ */
 "use strict";
 var FinancialCalculators = (() => {
   var __defProp = Object.defineProperty;
@@ -40,19 +40,33 @@ var FinancialCalculators = (() => {
 
   // src/utils.js
   function readNumber(name, value, min = 0) {
-    const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+    const number = typeof value === "string" && DECIMAL.test(value.trim()) ? Number(value) : value;
     if (typeof number !== "number" || !Number.isFinite(number)) {
-      throw new TypeError(`${name} must be a finite number, got ${String(value)}.`);
+      throw new TypeError(`${name} must be a finite number, got ${describe(value)}.`);
     }
     if (number < min) {
       throw new RangeError(`${name} must be at least ${min}, got ${number}.`);
     }
     return number;
   }
+  function describe(value) {
+    if (Array.isArray(value)) {
+      return "an array";
+    }
+    return typeof value === "string" ? `"${value}"` : String(value);
+  }
+  var DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
+  function readInteger(name, value, min = 0) {
+    const number = readNumber(name, value, min);
+    if (!Number.isInteger(number)) {
+      throw new RangeError(`${name} must be a whole number, got ${number}.`);
+    }
+    return number;
+  }
   var MAX_YEARS = 1e3;
   function readInputs(inputs) {
-    if (!inputs || typeof inputs !== "object") {
-      throw new TypeError(`inputs must be an object, such as { annualRate: 12, years: 10 }, got ${String(inputs)}.`);
+    if (!inputs || typeof inputs !== "object" || Array.isArray(inputs)) {
+      throw new TypeError(`inputs must be an object, such as { annualRate: 12, years: 10 }, got ${describe(inputs)}.`);
     }
     return inputs;
   }
@@ -83,16 +97,12 @@ var FinancialCalculators = (() => {
     if (startYear === void 0 || startYear === null || startYear === "") {
       return void 0;
     }
-    const year = readNumber("startYear", startYear, -1e6);
-    if (!Number.isInteger(year)) {
-      throw new RangeError(`startYear must be a whole year, got ${startYear}.`);
-    }
-    return year;
+    return readInteger("startYear", startYear, -1e6);
   }
   function yearlySeries(months, point, startYear) {
     const at = (month) => {
       const year = month / 12;
-      const base = startYear === void 0 ? { year, month } : { year, month, calendarYear: startYear + year };
+      const base = startYear === void 0 ? { year, month } : { year, month, calendarYear: startYear + Math.floor(year) };
       return { ...base, ...point(month) };
     };
     const series = [];
@@ -106,7 +116,10 @@ var FinancialCalculators = (() => {
     if (i === 0) {
       return amount * n;
     }
-    return amount * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
+    return amount * (growth(i, n) / i) * (1 + i);
+  }
+  function growth(i, n) {
+    return Math.expm1(n * Math.log1p(i));
   }
 
   // src/calculators/sip.js
@@ -137,7 +150,7 @@ var FinancialCalculators = (() => {
     const rate = readNumber("annualRate", annualRate) / 100;
     const months = toMonths(years);
     const firstYear = readStartYear(startYear);
-    const k = readNumber("compoundingPerYear", compoundingPerYear, 1);
+    const k = readInteger("compoundingPerYear", compoundingPerYear, 1);
     const valueAt = (month) => invested * Math.pow(1 + rate / k, k * month / 12);
     const total = valueAt(months);
     return finiteResult({
@@ -218,7 +231,7 @@ var FinancialCalculators = (() => {
       monthlyInvestment,
       totalInvested: monthlyInvestment * months,
       months,
-      ...firstYear === void 0 ? {} : { targetYear: firstYear + months / 12 },
+      ...firstYear === void 0 ? {} : { targetYear: firstYear + Math.floor(months / 12) },
       series: yearlySeries(months, (month) => {
         const investments = annuityDueValue(monthlyInvestment, i, month);
         return {
@@ -238,7 +251,7 @@ var FinancialCalculators = (() => {
     const i = readNumber("annualRate", annualRate) / 100 / 12;
     const months = toMonths(years);
     const firstYear = readStartYear(startYear);
-    const instalment = i === 0 ? loan / months : loan * i / (1 - Math.pow(1 + i, -months));
+    const instalment = i === 0 ? loan / months : loan * i / -growth(i, -months);
     const balances = [loan];
     const principalPaid = [0];
     const interestPaid = [0];
@@ -261,12 +274,12 @@ var FinancialCalculators = (() => {
         balance: balances[to]
       });
     }
-    const totalPayment = instalment * months;
+    const totalInterest = interestPaid[months];
     return finiteResult({
       emi: instalment,
       principal: loan,
-      totalInterest: totalPayment - loan,
-      totalPayment,
+      totalInterest,
+      totalPayment: loan + totalInterest,
       months,
       schedule,
       series: yearlySeries(months, (month) => ({
@@ -278,21 +291,21 @@ var FinancialCalculators = (() => {
   }
 
   // src/calculators/index.js
-  var registry = { sip, lumpsum, swp, goal, emi };
+  var registry = new Map(Object.entries({ sip, lumpsum, swp, goal, emi }));
   function types() {
-    return Object.keys(registry);
+    return [...registry.keys()];
   }
   function calculate(type, inputs) {
-    if (typeof type !== "string" || !Object.prototype.hasOwnProperty.call(registry, type)) {
-      throw new Error(`Unknown calculator "${type}". Available: ${types().join(", ")}.`);
+    if (typeof type !== "string" || !registry.has(type)) {
+      throw new Error(`Unknown calculator "${String(type)}". Available: ${types().join(", ")}.`);
     }
-    return registry[type](inputs);
+    return registry.get(type)(inputs);
   }
   function register(type, fn) {
     if (typeof type !== "string" || type === "" || typeof fn !== "function") {
       throw new TypeError("register( type, fn ) needs a type name and a function.");
     }
-    registry[type] = fn;
+    registry.set(type, fn);
   }
 
   // src/format/number.js
@@ -337,20 +350,46 @@ var FinancialCalculators = (() => {
     return decimals;
   }
   function groupDigits(digits, system = "indian") {
+    readSystem(system);
+    if (typeof digits !== "string" || !/^\d+$/.test(digits)) {
+      throw new TypeError(`digits must be a string of digits, such as "1234567", got ${String(digits)}.`);
+    }
     if (digits.length <= 3) {
       return digits;
     }
     const last3 = digits.slice(-3);
     const rest = digits.slice(0, -3);
-    const size = readSystem(system) === "indian" ? 2 : 3;
+    const size = system === "indian" ? 2 : 3;
     const pattern = new RegExp(`\\B(?=(\\d{${size}})+(?!\\d))`, "g");
     return rest.replace(pattern, ",") + "," + last3;
   }
+  function plainDigits(absolute) {
+    const text = String(absolute);
+    if (!text.includes("e")) {
+      return text;
+    }
+    const [mantissa, exponent] = text.split("e");
+    const [whole, fraction = ""] = mantissa.split(".");
+    const digits = whole + fraction;
+    const point = whole.length + Number(exponent);
+    return point <= 0 ? "0." + "0".repeat(-point) + digits : digits.slice(0, point) + "." + digits.slice(point);
+  }
+  function roundDigits(plain, decimals) {
+    const [whole, fraction = ""] = plain.split(".");
+    if (fraction.length <= decimals) {
+      return [whole, fraction.padEnd(decimals, "0")];
+    }
+    let kept = whole + fraction.slice(0, decimals);
+    if (fraction[decimals] >= "5") {
+      kept = (BigInt(kept) + 1n).toString().padStart(kept.length, "0");
+    }
+    const end = kept.length - decimals;
+    return [kept.slice(0, end).replace(/^0+(?=\d)/, "") || "0", kept.slice(end)];
+  }
   function formatByHand(value, decimals, system) {
     const absolute = Math.abs(value);
-    const fixed = absolute >= 1e21 ? BigInt(Math.round(absolute)).toString() + (decimals ? "." + "0".repeat(decimals) : "") : absolute.toFixed(decimals);
-    const [whole, fraction] = fixed.split(".");
-    const sign = value < 0 && Number(fixed) !== 0 ? "-" : "";
+    const [whole, fraction] = absolute >= 1e21 ? [BigInt(absolute).toString(), "0".repeat(decimals)] : roundDigits(plainDigits(absolute), decimals);
+    const sign = value < 0 && /[1-9]/.test(whole + fraction) ? "-" : "";
     return sign + groupDigits(whole, system) + (fraction ? "." + fraction : "");
   }
   function formatNumber(value, { system = "indian", decimals = 0 } = {}) {
@@ -401,7 +440,8 @@ var FinancialCalculators = (() => {
       index--;
     }
     const short = rounded(index);
-    return `${sign}${formatNumber(short, { system, decimals: short % 1 === 0 ? 0 : decimals })}${units[index][1]}`;
+    const places = (String(short).split(".")[1] || "").length;
+    return `${sign}${formatNumber(short, { system, decimals: Math.min(places, decimals) })}${units[index][1]}`;
   }
 
   // src/format/words.js
@@ -470,6 +510,9 @@ var FinancialCalculators = (() => {
     const words = {
       ones: list("ones", 20),
       tens: list("tens", 10),
+      // Languages whose numbers up to 99 don't follow "tens + ones" (Hindi:
+      // 21 is "इक्कीस", not "बीस एक") give all 100 words instead.
+      belowHundred: custom.belowHundred === void 0 ? null : list("belowHundred", 100),
       international: list("international", ENGLISH.international.length),
       indian: { ...ENGLISH.indian }
     };
@@ -498,6 +541,9 @@ var FinancialCalculators = (() => {
     return parts.filter(Boolean).join(" ");
   }
   function belowHundred(n, w) {
+    if (w.belowHundred) {
+      return n === 0 ? "" : w.belowHundred[n];
+    }
     if (n < 20) {
       return w.ones[n];
     }
@@ -509,7 +555,7 @@ var FinancialCalculators = (() => {
     if (!hundreds) {
       return belowHundred(rest, w);
     }
-    return join([w.ones[hundreds], w.hundred, rest ? w.and : "", rest ? belowHundred(rest, w) : ""]);
+    return join([belowHundred(hundreds, w), w.hundred, rest ? w.and : "", rest ? belowHundred(rest, w) : ""]);
   }
   function indian(digits, w) {
     digits = digits.replace(/^0+/, "");
@@ -583,6 +629,6 @@ var FinancialCalculators = (() => {
   }
 
   // src/index.js
-  var VERSION = true ? "1.1.1" : "development";
+  var VERSION = true ? "1.2.0" : "development";
   return __toCommonJS(index_exports);
 })();
