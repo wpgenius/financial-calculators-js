@@ -35,3 +35,7 @@ amountInWords( 1, { words: { hundred: 100 } } );
 formatCurrency( 1, { position: 'middle' } );
 
 export { total, depleted, monthly, firstYear, viaName, kind, all, text, fromGlobal, target, calendar, translated };
+
+// belowHundred (v1.2).
+const hindi: string = amountInWords( 21, { words: { belowHundred: Array.from( { length: 100 }, () => '' ) } } );
+void hindi;

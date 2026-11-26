@@ -160,3 +160,36 @@ test( 'the hand-made fallback (no en-IN in Intl) keeps every digit of huge numbe
 	const out = JSON.parse( execFileSync( process.execPath, [ '--input-type=module', '-e', script ], { encoding: 'utf8' } ) );
 	assert.deepEqual( out, [ '1,00,00,00,00,00,00,00,00,00,000', '1,000,000,000,000,000,000,000.00', '12,34,567.89', '-1,500' ] );
 } );
+
+test( 'the hand-made fallback rounds like Intl: halves away from zero, tiny values, no "-0" (#38)', () => {
+	const values = [ [ 1.005, 2 ], [ 2.5, 0 ], [ -2.5, 0 ], [ 0.125, 2 ], [ 1e-7, 2 ], [ 9.995, 2 ], [ 999.5, 0 ], [ -0.004, 2 ], [ 123456.789, 1 ] ];
+	const script = `
+		Intl.NumberFormat = function () { throw new Error( 'no locales' ); };
+		const { formatNumber } = await import( ${ JSON.stringify( new URL( '../src/index.js', import.meta.url ).href ) } );
+		console.log( JSON.stringify( ${ JSON.stringify( values ) }.map( ( [ v, decimals ] ) => formatNumber( v, { decimals } ) ) ) );
+	`;
+	const out = JSON.parse( execFileSync( process.execPath, [ '--input-type=module', '-e', script ], { encoding: 'utf8' } ) );
+	assert.deepEqual( out, values.map( ( [ v, decimals ] ) => formatNumber( v, { decimals } ) ) );
+	assert.deepEqual( out.slice( 0, 2 ), [ '1.01', '3' ] );
+} );
+
+test( 'formatCompact drops trailing zeros (#33)', () => {
+	assert.equal( formatCompact( 150000, { decimals: 2 } ), '1.5L' );
+	assert.equal( formatCompact( 1234567, { decimals: 2 } ), '12.35L' );
+	assert.equal( formatCompact( 2000000, { system: 'international', decimals: 3 } ), '2M' );
+} );
+
+test( 'groupDigits checks its inputs (#36)', () => {
+	assert.throws( () => groupDigits( 1234567 ), TypeError );
+	assert.throws( () => groupDigits( '12a4' ), TypeError );
+	assert.throws( () => groupDigits( '12', 'roman' ), RangeError );
+} );
+
+test( 'amountInWords: belowHundred gives every word up to 99 (#30)', () => {
+	const belowHundred = Array.from( { length: 100 }, ( _, n ) => `w${ n }` );
+	assert.equal( amountInWords( 21, { words: { belowHundred } } ), 'w21' );
+	assert.equal( amountInWords( 2121, { words: { belowHundred, and: '' } } ), 'w2 Thousand w1 Hundred w21' );
+	assert.equal( amountInWords( 4500000, { words: { belowHundred } } ), 'w45 Lakh' );
+	assert.equal( amountInWords( 21, { words: { belowHundred }, system: 'international' } ), 'w21' );
+	assert.throws( () => amountInWords( 1, { words: { belowHundred: [ 'one' ] } } ), /belowHundred must be an array of 100 strings/ );
+} );

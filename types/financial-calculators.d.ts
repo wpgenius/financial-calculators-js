@@ -10,7 +10,7 @@ export type NumberSystem = 'indian' | 'international';
 export interface SeriesPoint {
 	year: number;
 	month: number;
-	/** startYear + year, when the calculator got a startYear. */
+	/** The whole calendar year the point falls in (startYear + whole years), when the calculator got a startYear. */
 	calendarYear?: number;
 }
 
@@ -46,7 +46,7 @@ export interface LumpsumInputs extends StartYearInput {
 	amount: NumericInput;
 	annualRate: NumericInput;
 	years: NumericInput;
-	/** 1 yearly (default), 4 quarterly, 12 monthly. */
+	/** A whole number: 1 yearly (default), 4 quarterly, 12 monthly. */
 	compoundingPerYear?: NumericInput;
 }
 
@@ -109,7 +109,7 @@ export interface GoalResult {
 	monthlyInvestment: number;
 	totalInvested: number;
 	months: number;
-	/** startYear + years, when a startYear was given. */
+	/** The calendar year the goal falls in (startYear + whole years), when a startYear was given. */
 	targetYear?: number;
 	series: GoalPoint[];
 }
@@ -209,6 +209,11 @@ export interface WordsOptions {
 	ones?: string[];
 	/** 10 strings: '', '', twenty … ninety. */
 	tens?: string[];
+	/**
+	 * 100 strings for 0–99, used instead of ones and tens: for languages whose
+	 * numbers up to 99 aren't "tens + ones" (Hindi: 21 is "इक्कीस"). Index 0 is unused.
+	 */
+	belowHundred?: string[];
 	hundred?: string;
 	/** Between hundreds and the rest ("and"); '' leaves it out. */
 	and?: string;

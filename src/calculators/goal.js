@@ -45,7 +45,7 @@ export function goal( inputs ) {
 		monthlyInvestment,
 		totalInvested: monthlyInvestment * months,
 		months,
-		...( firstYear === undefined ? {} : { targetYear: firstYear + months / 12 } ),
+		...( firstYear === undefined ? {} : { targetYear: firstYear + Math.floor( months / 12 ) } ),
 		series: yearlySeries( months, ( month ) => {
 			const investments = annuityDueValue( monthlyInvestment, i, month );
 			return {

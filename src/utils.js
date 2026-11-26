@@ -13,12 +13,40 @@
  * @throws {RangeError} When the value is below min.
  */
 export function readNumber( name, value, min = 0 ) {
-	const number = typeof value === 'string' && value.trim() !== '' ? Number( value ) : value;
+	// Decimal strings only ("12", "-1.5", "2e5"): Number() would also read "0x10" as 16.
+	const number = typeof value === 'string' && DECIMAL.test( value.trim() ) ? Number( value ) : value;
 	if ( typeof number !== 'number' || ! Number.isFinite( number ) ) {
-		throw new TypeError( `${ name } must be a finite number, got ${ String( value ) }.` );
+		throw new TypeError( `${ name } must be a finite number, got ${ describe( value ) }.` );
 	}
 	if ( number < min ) {
 		throw new RangeError( `${ name } must be at least ${ min }, got ${ number }.` );
+	}
+	return number;
+}
+
+// How a bad value reads in an error message.
+export function describe( value ) {
+	if ( Array.isArray( value ) ) {
+		return 'an array';
+	}
+	return typeof value === 'string' ? `"${ value }"` : String( value );
+}
+
+const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
+
+/**
+ * Reads a whole-number input, such as a count of periods.
+ *
+ * @param {string} name  Input name, for the error message.
+ * @param {*}      value Value to read.
+ * @param {number} [min=0] Smallest allowed value.
+ * @return {number} The value as a whole number.
+ * @throws {RangeError} When the value has a fraction or is below min.
+ */
+export function readInteger( name, value, min = 0 ) {
+	const number = readNumber( name, value, min );
+	if ( ! Number.isInteger( number ) ) {
+		throw new RangeError( `${ name } must be a whole number, got ${ number }.` );
 	}
 	return number;
 }
@@ -34,8 +62,8 @@ export const MAX_YEARS = 1000;
  * @throws {TypeError} When inputs is not an object.
  */
 export function readInputs( inputs ) {
-	if ( ! inputs || typeof inputs !== 'object' ) {
-		throw new TypeError( `inputs must be an object, such as { annualRate: 12, years: 10 }, got ${ String( inputs ) }.` );
+	if ( ! inputs || typeof inputs !== 'object' || Array.isArray( inputs ) ) {
+		throw new TypeError( `inputs must be an object, such as { annualRate: 12, years: 10 }, got ${ describe( inputs ) }.` );
 	}
 	return inputs;
 }
@@ -90,11 +118,7 @@ export function readStartYear( startYear ) {
 	if ( startYear === undefined || startYear === null || startYear === '' ) {
 		return undefined;
 	}
-	const year = readNumber( 'startYear', startYear, -1e6 );
-	if ( ! Number.isInteger( year ) ) {
-		throw new RangeError( `startYear must be a whole year, got ${ startYear }.` );
-	}
-	return year;
+	return readInteger( 'startYear', startYear, -1e6 );
 }
 
 /**
@@ -103,13 +127,14 @@ export function readStartYear( startYear ) {
  *
  * @param {number}                   months      Duration in months.
  * @param {function(number): Object} point       Values at a given month.
- * @param {number}                   [startYear] Calendar year of month 0; adds calendarYear.
+ * @param {number}                   [startYear] Calendar year of month 0; adds calendarYear,
+ *                                               the whole year that month falls in.
  * @return {Array<Object>} Points: { year, month, [calendarYear], ...point(month) }.
  */
 export function yearlySeries( months, point, startYear ) {
 	const at = ( month ) => {
 		const year = month / 12;
-		const base = startYear === undefined ? { year, month } : { year, month, calendarYear: startYear + year };
+		const base = startYear === undefined ? { year, month } : { year, month, calendarYear: startYear + Math.floor( year ) };
 		return { ...base, ...point( month ) };
 	};
 	const series = [];
@@ -133,5 +158,17 @@ export function annuityDueValue( amount, i, n ) {
 	if ( i === 0 ) {
 		return amount * n;
 	}
-	return amount * ( ( Math.pow( 1 + i, n ) - 1 ) / i ) * ( 1 + i );
+	return amount * ( growth( i, n ) / i ) * ( 1 + i );
+}
+
+/**
+ * (1 + i)^n − 1, accurate for tiny rates too: computed directly, the
+ * subtraction loses every digit when i is near 0 (a 1e-13 % rate gave 0).
+ *
+ * @param {number} i Rate per period.
+ * @param {number} n Periods (may be negative).
+ * @return {number} The growth.
+ */
+export function growth( i, n ) {
+	return Math.expm1( n * Math.log1p( i ) );
 }

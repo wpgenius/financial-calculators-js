@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@wpgenius/financial-calculators)](https://www.npmjs.com/package/@wpgenius/financial-calculators)
 [![Latest release](https://img.shields.io/github/v/release/wpgenius/financial-calculators-js)](https://github.com/wpgenius/financial-calculators-js/releases/latest)
 [![CI](https://github.com/wpgenius/financial-calculators-js/actions/workflows/ci.yml/badge.svg)](https://github.com/wpgenius/financial-calculators-js/actions/workflows/ci.yml)
-[![Licence: GPL-3.0-or-later](https://img.shields.io/github/license/wpgenius/financial-calculators-js)](LICENSE)
+[![Licence: MIT](https://img.shields.io/github/license/wpgenius/financial-calculators-js)](LICENSE)
 [![npm downloads](https://img.shields.io/npm/dm/@wpgenius/financial-calculators)](https://www.npmjs.com/package/@wpgenius/financial-calculators)
 [![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@wpgenius/financial-calculators)](https://www.jsdelivr.com/package/npm/@wpgenius/financial-calculators)
 [![Bundle size](https://img.shields.io/bundlephobia/minzip/@wpgenius/financial-calculators)](https://bundlephobia.com/package/@wpgenius/financial-calculators)
@@ -34,7 +34,11 @@ npm install @wpgenius/financial-calculators
 
 ```js
 import { sip, formatCurrency, amountInWords } from '@wpgenius/financial-calculators';
+// or, in CommonJS:
+const { sip, formatCurrency, amountInWords } = require( '@wpgenius/financial-calculators' );
 ```
+
+TypeScript types are included for both.
 
 Or from the jsDelivr CDN, which defines the global `FinancialCalculators`:
 
@@ -46,6 +50,16 @@ Or from the jsDelivr CDN, which defines the global `FinancialCalculators`:
 production. Or download `financial-calculators.min.js`, the readable
 `financial-calculators.js` or the ES module `financial-calculators.esm.js` from
 the [latest release](https://github.com/wpgenius/financial-calculators-js/releases/latest).
+
+### Supported environments
+
+- **Browsers:** any browser with ES2020 and `BigInt`: Chrome and Edge 80+,
+  Firefox 74+, Safari 14+. No polyfills needed.
+- **Node.js:** 20 and later, with `import` or `require`.
+- **Bundlers:** webpack, Vite, Rollup and esbuild pick the ES module; the
+  package has no side effects, so unused functions are tree-shaken.
+- **No dependencies**, and no `Intl` locale data required: when the runtime
+  lacks `en-IN`, the grouping is done by hand with the same result.
 
 ## Quick start
 
@@ -88,7 +102,8 @@ The details follow; the [documentation](https://wpgenius.github.io/financial-cal
 Every calculator takes one object of inputs and returns plain numbers
 (unrounded: round when you display them). Rates are % a year (`12` for 12%).
 `years` may have fractions; it is rounded to whole months, from one month up
-to 1,000 years. Inputs may be numbers or numeric strings; a missing,
+to 1,000 years. Inputs may be numbers or decimal strings (`"12.5"`, `"1e5"`;
+not `"0x10"` or `"25,000"`); a missing,
 non-numeric or negative input throws a `TypeError` or `RangeError`, and so
 does a result too large to be a finite number (instead of returning
 `Infinity` or `NaN`).
@@ -98,8 +113,9 @@ last point at the final month, each with `year` and `month` plus the values
 listed below.
 
 Every calculator also takes an optional `startYear` (such as `2026`): each
-series point then gets `calendarYear` (`startYear + year`), handy for chart
-labels, and `goal()` also returns `targetYear`.
+series point then gets `calendarYear`, the whole calendar year it falls in
+(`startYear` plus whole years, so 2.5 years from 2026 is 2028), handy for chart
+labels, and `goal()` also returns `targetYear` the same way.
 
 #### `sip( { monthlyAmount, annualRate, years } )`
 
@@ -114,7 +130,8 @@ sip( { monthlyAmount: 25000, annualRate: 12, years: 10 } ).total; // 5808477.3�
 
 #### `lumpsum( { amount, annualRate, years, compoundingPerYear = 1 } )`
 
-One-time investment. `compoundingPerYear`: 1 yearly, 4 quarterly, 12 monthly.
+One-time investment. `compoundingPerYear` is a whole number: 1 yearly, 4
+quarterly, 12 monthly.
 
 Returns `{ invested, returns, total, months, series }`, series points
 `{ year, month, invested, total }`.
@@ -169,19 +186,25 @@ register( 'myCalc', ( inputs ) => ( { … } ) ); // add or replace a calculator
 | `groupDigits( digits, system )` | `groupDigits( '1234567' )` → `"12,34,567"` |
 
 `formatNumber` uses `Intl.NumberFormat` when the runtime has the `en-IN`
-locale, and the same grouping by hand otherwise. `amountInWords` rounds to a
+locale, and the same grouping and rounding (halves away from zero) by hand
+otherwise. `formatCompact` shows only the decimals it needs (`"1.5L"`, not
+`"1.50L"`). `amountInWords` rounds to a
 whole number and also takes a `BigInt` or a string of digits for amounts
 beyond 2^53. Pass `words` to translate it: any of `ones` (20 strings), `tens` (10),
-`hundred`, `and` (`''` to leave it out), `zero`, `minus`, `indian`
+`belowHundred` (100 strings for 0–99, used instead of `ones` and `tens`, for
+languages such as Hindi whose numbers up to 99 aren't "tens + ones"), `hundred`, `and` (`''` to leave it out), `zero`, `minus`, `indian`
 (`{ thousand, lakh, crore }`) and `international` (12 strings); missing keys
 stay English.
 
 ```js
-amountInWords( 150000, { words: {
-  ones: [ '', 'एक', 'दो', /* … */ ], tens: [ '', '', 'बीस', /* … */ ],
+const hindi = {
+  belowHundred: [ '', 'एक', 'दो', /* … */ 'इक्कीस', /* … */ 'निन्यानवे' ], // 100 words
   hundred: 'सौ', and: '', indian: { thousand: 'हज़ार', lakh: 'लाख', crore: 'करोड़' },
-} } ); // "एक लाख पचास हज़ार"
-``` `VERSION` is the library version.
+};
+amountInWords( 2150000, { words: hindi } ); // "इक्कीस लाख पचास हज़ार"
+```
+
+`VERSION` is the library version.
 
 ## Contributing
 
@@ -226,4 +249,4 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
 
 ## License
 
-GPL-3.0-or-later. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

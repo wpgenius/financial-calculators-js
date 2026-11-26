@@ -64,22 +64,57 @@ function readDecimals( decimals ) {
  * @return {string} e.g. "12,34,567" or "1,234,567".
  */
 export function groupDigits( digits, system = 'indian' ) {
+	readSystem( system );
+	if ( typeof digits !== 'string' || ! /^\d+$/.test( digits ) ) {
+		throw new TypeError( `digits must be a string of digits, such as "1234567", got ${ String( digits ) }.` );
+	}
 	if ( digits.length <= 3 ) {
 		return digits;
 	}
 	const last3 = digits.slice( -3 );
 	const rest = digits.slice( 0, -3 );
-	const size = readSystem( system ) === 'indian' ? 2 : 3;
+	const size = system === 'indian' ? 2 : 3;
 	const pattern = new RegExp( `\\B(?=(\\d{${ size }})+(?!\\d))`, 'g' );
 	return rest.replace( pattern, ',' ) + ',' + last3;
 }
 
+// A positive number below 10^21 as plain decimal digits, from its shortest
+// form (what Intl rounds too): 1.005 → "1.005", 1e-7 → "0.0000001".
+function plainDigits( absolute ) {
+	const text = String( absolute );
+	if ( ! text.includes( 'e' ) ) {
+		return text;
+	}
+	const [ mantissa, exponent ] = text.split( 'e' );
+	const [ whole, fraction = '' ] = mantissa.split( '.' );
+	const digits = whole + fraction;
+	const point = whole.length + Number( exponent );
+	return point <= 0 ? '0.' + '0'.repeat( -point ) + digits : digits.slice( 0, point ) + '.' + digits.slice( point );
+}
+
+// Rounds plain digits half away from zero, like Intl: toFixed would round
+// 1.005 to "1.00" because the stored binary value is just below it.
+function roundDigits( plain, decimals ) {
+	const [ whole, fraction = '' ] = plain.split( '.' );
+	if ( fraction.length <= decimals ) {
+		return [ whole, fraction.padEnd( decimals, '0' ) ];
+	}
+	let kept = whole + fraction.slice( 0, decimals );
+	if ( fraction[ decimals ] >= '5' ) {
+		kept = ( BigInt( kept ) + 1n ).toString().padStart( kept.length, '0' );
+	}
+	const end = kept.length - decimals;
+	return [ kept.slice( 0, end ).replace( /^0+(?=\d)/, '' ) || '0', kept.slice( end ) ];
+}
+
 function formatByHand( value, decimals, system ) {
 	const absolute = Math.abs( value );
-	// toFixed switches to exponent notation ("1e+21") at 10^21; BigInt keeps every digit.
-	const fixed = absolute >= 1e21 ? BigInt( Math.round( absolute ) ).toString() + ( decimals ? '.' + '0'.repeat( decimals ) : '' ) : absolute.toFixed( decimals );
-	const [ whole, fraction ] = fixed.split( '.' );
-	const sign = value < 0 && Number( fixed ) !== 0 ? '-' : '';
+	// At 10^21 and above a double has no fraction, and String() switches to
+	// exponent notation; BigInt keeps every digit.
+	const [ whole, fraction ] = absolute >= 1e21
+		? [ BigInt( absolute ).toString(), '0'.repeat( decimals ) ]
+		: roundDigits( plainDigits( absolute ), decimals );
+	const sign = value < 0 && /[1-9]/.test( whole + fraction ) ? '-' : '';
 	return sign + groupDigits( whole, system ) + ( fraction ? '.' + fraction : '' );
 }
 
@@ -166,5 +201,7 @@ export function formatCompact( value, { system = 'indian', decimals = 1 } = {} )
 		index--;
 	}
 	const short = rounded( index );
-	return `${ sign }${ formatNumber( short, { system, decimals: short % 1 === 0 ? 0 : decimals } ) }${ units[ index ][ 1 ] }`;
+	// Only the digits needed, up to decimals: 1.5 stays "1.5", never "1.50".
+	const places = ( String( short ).split( '.' )[ 1 ] || '' ).length;
+	return `${ sign }${ formatNumber( short, { system, decimals: Math.min( places, decimals ) } ) }${ units[ index ][ 1 ] }`;
 }

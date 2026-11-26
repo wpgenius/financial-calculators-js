@@ -8,7 +8,9 @@ import { emi } from './emi.js';
  * Every calculator, by type. New calculators (FD, step-up SIP, RD, PPF, CAGR,
  * retirement) are added as a file in this folder and one line here.
  */
-const registry = { sip, lumpsum, swp, goal, emi };
+// A Map, so any name works as a type: on a plain object "__proto__" would
+// replace the prototype instead of adding a calculator.
+const registry = new Map( Object.entries( { sip, lumpsum, swp, goal, emi } ) );
 
 /**
  * The calculator types available.
@@ -16,7 +18,7 @@ const registry = { sip, lumpsum, swp, goal, emi };
  * @return {string[]} Types, e.g. [ 'sip', 'lumpsum', 'swp', 'goal', 'emi' ].
  */
 export function types() {
-	return Object.keys( registry );
+	return [ ...registry.keys() ];
 }
 
 /**
@@ -28,10 +30,10 @@ export function types() {
  * @throws {Error} When the type is unknown.
  */
 export function calculate( type, inputs ) {
-	if ( typeof type !== 'string' || ! Object.prototype.hasOwnProperty.call( registry, type ) ) {
-		throw new Error( `Unknown calculator "${ type }". Available: ${ types().join( ', ' ) }.` );
+	if ( typeof type !== 'string' || ! registry.has( type ) ) {
+		throw new Error( `Unknown calculator "${ String( type ) }". Available: ${ types().join( ', ' ) }.` );
 	}
-	return registry[ type ]( inputs );
+	return registry.get( type )( inputs );
 }
 
 /**
@@ -45,7 +47,7 @@ export function register( type, fn ) {
 	if ( typeof type !== 'string' || type === '' || typeof fn !== 'function' ) {
 		throw new TypeError( 'register( type, fn ) needs a type name and a function.' );
 	}
-	registry[ type ] = fn;
+	registry.set( type, fn );
 }
 
 export { sip, lumpsum, swp, goal, emi };

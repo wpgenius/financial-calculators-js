@@ -42,6 +42,7 @@
 	<nav class="toc" aria-label="On this page">
 		<ul>
 			<li><a href="#install">Install</a></li>
+			<li><a href="#support">Supported environments</a></li>
 			<li><a href="#conventions">Conventions</a></li>
 			<li><a href="#sip">sip()</a></li>
 			<li><a href="#lumpsum">lumpsum()</a></li>
@@ -71,17 +72,28 @@
 &lt;/script&gt;</code></pre>
 		<p>With a bundler or Node.js 20+:</p>
 <pre><code>npm install @wpgenius/financial-calculators</code></pre>
-<pre><code>import { sip, formatCurrency } from '@wpgenius/financial-calculators';</code></pre>
+<pre><code>import { sip, formatCurrency } from '@wpgenius/financial-calculators';
+// or, in CommonJS:
+const { sip, formatCurrency } = require( '@wpgenius/financial-calculators' );</code></pre>
+		<p>TypeScript types are included for both.</p>
 		<p>Or download <code>financial-calculators.min.js</code>, <code>financial-calculators.js</code> (readable) or <code>financial-calculators.esm.js</code> from the <a href="https://github.com/wpgenius/financial-calculators-js/releases/latest">latest release</a>.</p>
+
+		<h3 id="support">Supported environments</h3>
+		<ul>
+			<li><strong>Browsers</strong> with ES2020 and <code>BigInt</code>: Chrome and Edge 80+, Firefox 74+, Safari 14+. No polyfills needed.</li>
+			<li><strong>Node.js</strong> 20 and later, with <code>import</code> or <code>require</code>.</li>
+			<li><strong>Bundlers</strong> (webpack, Vite, Rollup, esbuild) pick the ES module; the package has no side effects, so unused functions are tree-shaken.</li>
+			<li><strong>No dependencies</strong>, and no <code>Intl</code> locale data required.</li>
+		</ul>
 
 		<h2 id="conventions">Conventions</h2>
 		<ul>
 			<li>Each calculator takes <strong>one object</strong> of inputs and returns an object of <strong>unrounded numbers</strong>. Round and format them when you display them.</li>
 			<li><strong>Rates</strong> are % a year: <code>12</code> means 12%.</li>
 			<li><strong><code>years</code></strong> may have fractions; it's rounded to whole months, from one month up to 1,000 years.</li>
-			<li>Inputs may be numbers or numeric strings (<code>'25000'</code>). A missing or non-numeric input throws a <code>TypeError</code>; a negative one, or a duration under a month or over 1,000 years, throws a <code>RangeError</code>. So does a result too large to be a finite number, instead of returning <code>Infinity</code> or <code>NaN</code>.</li>
+			<li>Inputs may be numbers or decimal strings (<code>'25000'</code>, <code>'12.5'</code>, <code>'1e5'</code>; not <code>'0x10'</code> or <code>'25,000'</code>). A missing or non-numeric input throws a <code>TypeError</code>; a negative one, or a duration under a month or over 1,000 years, throws a <code>RangeError</code>. So does a result too large to be a finite number, instead of returning <code>Infinity</code> or <code>NaN</code>.</li>
 			<li>Every result has <code>months</code> and a <code>series</code>: one point at month 0, 12, 24… and a last point at the final month, each with <code>year</code> and <code>month</code> plus the values listed for that calculator.</li>
-			<li>Every calculator also takes an optional <code>startYear</code> (such as <code>2026</code>). Each series point then gets <code>calendarYear</code> (<code>startYear + year</code>) for chart labels, and <code>goal()</code> also returns <code>targetYear</code>.</li>
+			<li>Every calculator also takes an optional <code>startYear</code> (such as <code>2026</code>). Each series point then gets <code>calendarYear</code>, the whole calendar year it falls in (<code>startYear</code> plus whole years, so 2.5 years from 2026 is 2028), for chart labels, and <code>goal()</code> also returns <code>targetYear</code> the same way.</li>
 		</ul>
 
 		<h2 id="sip">sip( inputs )</h2>
@@ -106,7 +118,7 @@
 				<tr><td><code>amount</code></td><td>Amount invested once.</td></tr>
 				<tr><td><code>annualRate</code></td><td>Expected return, % a year.</td></tr>
 				<tr><td><code>years</code></td><td>Duration in years.</td></tr>
-				<tr><td><code>compoundingPerYear</code></td><td>Optional: 1 yearly (default), 4 quarterly, 12 monthly.</td></tr>
+				<tr><td><code>compoundingPerYear</code></td><td>Optional whole number: 1 yearly (default), 4 quarterly, 12 monthly.</td></tr>
 			</tbody>
 		</table>
 		<p>Returns <code>{ invested, returns, total, months, series }</code>; series points <code>{ year, month, invested, total }</code>.</p>
@@ -186,7 +198,7 @@ register( 'myCalc', ( inputs ) =&gt; ( { /* … */ } ) );       // add or replac
 <pre><code>formatNumber( 5808477 );                              // "58,08,477"
 formatNumber( 5808477, { system: 'international' } ); // "5,808,477"
 formatNumber( 1234567.891, { decimals: 2 } );         // "12,34,567.89"</code></pre>
-		<p>It uses <code>Intl.NumberFormat</code> when the runtime has the <code>en-IN</code> locale, and the same grouping by hand otherwise, so the output never depends on which locales are installed. It never returns <code>"-0"</code>.</p>
+		<p>It uses <code>Intl.NumberFormat</code> when the runtime has the <code>en-IN</code> locale, and the same grouping and rounding (halves away from zero) by hand otherwise, so the output never depends on which locales are installed. It never returns <code>"-0"</code>.</p>
 
 		<h2 id="format-currency">formatCurrency( value, options )</h2>
 		<p>The currency symbol plus the grouped number. Takes the <code>formatNumber</code> options plus:</p>
@@ -202,6 +214,7 @@ formatCurrency( 1500, { symbol: '€', position: 'after', system: 'international
 
 		<h2 id="format-compact">formatCompact( value, options )</h2>
 		<p>Short form for chart axes and tight spaces: K, L (lakh), Cr (crore) in the Indian system; K, M, B, T internationally. Options: <code>system</code>, and <code>decimals</code> (most digits after the point, default 1).</p>
+<p>Only the decimals it needs are shown: <code>formatCompact( 150000, { decimals: 2 } )</code> is <code>"1.5L"</code>, not <code>"1.50L"</code>.</p>
 <pre><code>formatCompact( 1500000 );                              // "15L"
 formatCompact( 25000000 );                             // "2.5Cr"
 formatCompact( 1500000, { system: 'international' } ); // "1.5M"</code></pre>
@@ -220,6 +233,7 @@ amountInWords( -1500 );     // "Minus One Thousand Five Hundred"</code></pre>
 			<tbody>
 				<tr><td><code>ones</code></td><td>20 strings for 0–19 (index 0 is usually <code>''</code>).</td></tr>
 				<tr><td><code>tens</code></td><td>10 strings: <code>''</code>, <code>''</code>, twenty … ninety.</td></tr>
+				<tr><td><code>belowHundred</code></td><td>100 strings for 0–99, used instead of <code>ones</code> and <code>tens</code>: for languages whose numbers up to 99 aren't "tens + ones", such as Hindi (21 is "इक्कीस", not "बीस एक"). Index 0 is not used.</td></tr>
 				<tr><td><code>hundred</code>, <code>and</code></td><td>"Hundred" and the word after it ("and"; <code>''</code> leaves it out).</td></tr>
 				<tr><td><code>zero</code>, <code>minus</code></td><td>For 0 and negative amounts.</td></tr>
 				<tr><td><code>indian</code></td><td><code>{ thousand, lakh, crore }</code>.</td></tr>
@@ -228,16 +242,15 @@ amountInWords( -1500 );     // "Minus One Thousand Five Hundred"</code></pre>
 		</table>
 		<p>Missing keys stay English; a list of the wrong length throws a <code>TypeError</code>.</p>
 <pre><code>const hindi = {
-  ones: [ '', 'एक', 'दो', 'तीन', 'चार', 'पाँच', 'छह', 'सात', 'आठ', 'नौ', 'दस',
-          'ग्यारह', 'बारह', 'तेरह', 'चौदह', 'पंद्रह', 'सोलह', 'सत्रह', 'अठारह', 'उन्नीस' ],
-  tens: [ '', '', 'बीस', 'तीस', 'चालीस', 'पचास', 'साठ', 'सत्तर', 'अस्सी', 'नब्बे' ],
+  // All 100 words, 0–99: Hindi numbers up to 99 are irregular.
+  belowHundred: [ '', 'एक', 'दो', 'तीन', /* … */ 'बीस', 'इक्कीस', /* … */ 'पचास', /* … */ 'निन्यानवे' ],
   hundred: 'सौ', and: '', zero: 'शून्य', minus: 'ऋण',
   indian: { thousand: 'हज़ार', lakh: 'लाख', crore: 'करोड़' },
 };
-amountInWords( 150000, { words: hindi } ); // "एक लाख पचास हज़ार"</code></pre>
+amountInWords( 2150000, { words: hindi } ); // "इक्कीस लाख पचास हज़ार"</code></pre>
 
 		<h2 id="group-digits">groupDigits( digits, system ), VERSION</h2>
-		<p><code>groupDigits( '1234567' )</code> returns <code>"12,34,567"</code>: the hand-made grouping <code>formatNumber</code> falls back to, for a string of digits. <code>VERSION</code> is the library version, such as <code>"1.0.0"</code>.</p>
+		<p><code>groupDigits( '1234567' )</code> returns <code>"12,34,567"</code>: the hand-made grouping <code>formatNumber</code> falls back to, for a string of digits. <code>VERSION</code> is the library version, such as <code>"1.2.0"</code>. A <code>digits</code> value that isn't a string of digits throws a <code>TypeError</code>.</p>
 
 		<h2 id="typescript">TypeScript</h2>
 		<p>Types ship with the package (<code>types/financial-calculators.d.ts</code>): every input and result interface, plus <code>calculate()</code> typed by calculator name, and <code>window.FinancialCalculators</code> for the browser build.</p>
@@ -261,7 +274,7 @@ const loan: EmiResult = emi( { principal: 100000, annualRate: 7, years: 1 } );</
 
 <footer class="site-footer">
 	<div class="wrap">
-		<span>financial-calculators-js · GPL-3.0-or-later · by <a href="https://wpgenius.in">WPGenius</a></span>
+		<span>financial-calculators-js · MIT · by <a href="https://wpgenius.in">WPGenius</a></span>
 		<span><a href="https://github.com/wpgenius/financial-calculators-js">GitHub</a> · <a href="https://www.npmjs.com/package/@wpgenius/financial-calculators">npm</a> · <a href="https://github.com/wpgenius/financial-calculators-js/releases">Releases</a> · <a href="docs.html">Docs</a></span>
 	</div>
 </footer>
